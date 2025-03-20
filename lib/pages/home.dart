@@ -5,7 +5,7 @@ import 'package:app/pages/workout.dart'; // Ensure this is the correct path
 import 'package:app/pages/calories.dart'; // Ensure this is the correct path
 import 'package:app/pages/settings.dart'; // Ensure this is the correct path
 import 'package:fl_chart/fl_chart.dart';
-
+//last version
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
