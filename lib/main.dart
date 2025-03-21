@@ -6,6 +6,7 @@ import 'package:app/intro%20pages/heightpage.dart';
 import 'package:app/intro%20pages/weightpage.dart';
 import 'package:app/pages/calories.dart';
 */
+import 'package:app/intro%20pages/weightpage.dart';
 import 'package:app/pages/workout.dart';
 
 import 'package:app/intro%20pages/genderpage.dart';

@@ -45,6 +45,10 @@ class _HomePageState extends State<HomePage> {
             icon: Icon(Icons.settings, color: _selectedIndex == 2 ? Colors.green : Colors.black),
             label: "Settings",
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sports_gymnastics, color: _selectedIndex == 2 ? Colors.green : Colors.black),
+            label: "gyms",
+          ),
         ],
         backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Navbar color
         selectedItemColor: Colors.green, // Color of the selected icon
@@ -75,7 +79,7 @@ class HomePageContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  "Hello, Kakashi 👋",
+                  "Hello, Alex 👋",
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
