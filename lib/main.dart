@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:app/pages/home.dart';
 
 //the app <??<>??>
+//26.3.25
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
   await Firebase.initializeApp().then((_){

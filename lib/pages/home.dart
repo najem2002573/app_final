@@ -177,7 +177,7 @@ Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Food()), // Navigate to your HealthPage
+            MaterialPageRoute(builder: (context) => DailyDietPage()), // Navigate to your HealthPage
           );
         },
         child: Container(
