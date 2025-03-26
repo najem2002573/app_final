@@ -18,7 +18,7 @@ import 'package:firebase_core/firebase_core.dart';
 //import 'package:app/pages/register.dart';
 import 'package:app/pages/home.dart';
 //import 'package:app/intro%20pages/goalscreen.dart';
-
+//the app <??<>??>
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
   await Firebase.initializeApp().then((_){
