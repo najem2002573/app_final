@@ -64,7 +64,7 @@ class _SelectHeightScreenState extends State<SelectHeightScreen> {
               onTap: heightController.text.isNotEmpty ? () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => SelectWeightScreen()),
+            MaterialPageRoute(builder: (context) => HeightWeightPickerPage()),
           );
         } : null,
               child: Container(

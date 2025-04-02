@@ -8,17 +8,31 @@ const double userBMI = 22.5;
 const bool isMale = true; // Change to false for female
 
 // Calculations
-double get bodyFatPercentage => isMale ? (18 + 6) : (25 + 6); // Men: 18-24%, Women: 25-31%
+double get bodyFatPercentage =>
+    isMale ? (18 + 6) : (25 + 6); // Men: 18-24%, Women: 25-31%
 double get sugarIntake => userCalories / 4; // Sugar in grams
-double get muscleMass => (userWeight - (userWeight * (1.20 * userBMI / 100))) * 0.80;
+double get muscleMass =>
+    (userWeight - (userWeight * (1.20 * userBMI / 100))) * 0.80;
 
 class HealthPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Health Dashboard'),
-        actions: [IconButton(icon: Icon(Icons.settings), onPressed: () {})],
+        backgroundColor: Colors.teal.shade300,
+        elevation: 0,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min, // Centers the content nicely
+          children: [
+            Text(
+              "Health",
+              style: TextStyle(color: Colors.white),
+            ),
+            Icon(Icons.heart_broken, color: Colors.white),
+            SizedBox(width: 8),
+          ],
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -29,39 +43,60 @@ class HealthPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard('Heart Rate', '97 bpm', Icons.favorite, Colors.blue.shade100, ""),
-                  _buildHealthCard('Cholesterol', '180 mg/dL', Icons.medical_services, Colors.orange.shade100, ""),
+                  _buildHealthCard('Heart Rate', '97 bpm', Icons.favorite,
+                      Colors.blue.shade100, ""),
+                  _buildHealthCard('Cholesterol', '180 mg/dL',
+                      Icons.medical_services, Colors.orange.shade100, ""),
                 ],
               ),
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard('Weight', '68 kg', Icons.monitor_weight, Colors.yellow.shade100, ""),
-                  _buildHealthCard('BMI', '22.5', Icons.bar_chart, Colors.green.shade100, ""),
+                  _buildHealthCard('Weight', '68 kg', Icons.monitor_weight,
+                      Colors.yellow.shade100, ""),
+                  _buildHealthCard('BMI', '22.5', Icons.bar_chart,
+                      Colors.green.shade100, ""),
                 ],
               ),
               SizedBox(height: 20),
-              Text('Additional Health Metrics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Additional Health Metrics',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard("Body Fat", "${bodyFatPercentage.toStringAsFixed(1)}%", Icons.percent, Colors.purple.shade100, ""),
-                  _buildHealthCard("Sugar Intake", "${sugarIntake.toStringAsFixed(1)} g", Icons.cake, Colors.pink.shade100, ""),
+                  _buildHealthCard(
+                      "Body Fat",
+                      "${bodyFatPercentage.toStringAsFixed(1)}%",
+                      Icons.percent,
+                      Colors.purple.shade100,
+                      ""),
+                  _buildHealthCard(
+                      "Sugar Intake",
+                      "${sugarIntake.toStringAsFixed(1)} g",
+                      Icons.cake,
+                      Colors.pink.shade100,
+                      ""),
                 ],
               ),
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard("Muscle Mass", "${muscleMass.toStringAsFixed(1)} kg", Icons.fitness_center, Colors.blue.shade100, ""),
+                  _buildHealthCard(
+                      "Muscle Mass",
+                      "${muscleMass.toStringAsFixed(1)} kg",
+                      Icons.fitness_center,
+                      Colors.blue.shade100,
+                      ""),
                 ],
               ),
               SizedBox(height: 30),
               _buildComparisonTable(),
               SizedBox(height: 30),
-              Text("Weekly Muscle & Fat Trends", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text("Weekly Muscle & Fat Trends",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               SizedBox(height: 10),
               Container(
                 height: 280,
@@ -80,7 +115,9 @@ class HealthPage extends StatelessWidget {
                           showTitles: true,
                           interval: 2,
                           getTitlesWidget: (value, meta) {
-                            return Text('${value.toInt()}K', style: TextStyle(color: Colors.grey[400], fontSize: 12));
+                            return Text('${value.toInt()}K',
+                                style: TextStyle(
+                                    color: Colors.grey[400], fontSize: 12));
                           },
                         ),
                       ),
@@ -88,25 +125,38 @@ class HealthPage extends StatelessWidget {
                         sideTitles: SideTitles(
                           showTitles: true,
                           getTitlesWidget: (value, meta) {
-                            const days = ['Mn', 'Te', 'Wd', 'Tu', 'Fr', 'St', 'Sn'];
+                            const days = [
+                              'Mn',
+                              'Te',
+                              'Wd',
+                              'Tu',
+                              'Fr',
+                              'St',
+                              'Sn'
+                            ];
                             return Padding(
                               padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(days[value.toInt()], style: TextStyle(color: Colors.grey[400])),
+                              child: Text(days[value.toInt()],
+                                  style: TextStyle(color: Colors.grey[400])),
                             );
                           },
                         ),
                       ),
-                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles:
+                          AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles:
+                          AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     ),
                     gridData: FlGridData(show: false),
                     borderData: FlBorderData(show: false),
                     barTouchData: BarTouchData(
                       enabled: true,
                       touchTooltipData: BarTouchTooltipData(
-                      //  tooltipBgColor: Colors.white,
+                        //  tooltipBgColor: Colors.white,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          return BarTooltipItem('${rod.toY.toStringAsFixed(1)}K', TextStyle(color: Colors.black));
+                          return BarTooltipItem(
+                              '${rod.toY.toStringAsFixed(1)}K',
+                              TextStyle(color: Colors.black));
                         },
                       ),
                     ),
@@ -120,7 +170,8 @@ class HealthPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHealthCard(String title, String value, IconData icon, Color color, String suggestion) {
+  Widget _buildHealthCard(String title, String value, IconData icon,
+      Color color, String suggestion) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(16),
@@ -134,14 +185,19 @@ class HealthPage extends StatelessWidget {
           children: [
             Icon(icon, size: 24),
             SizedBox(height: 8),
-            Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+            Text(value,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             if (suggestion.isNotEmpty)
               Padding(
                 padding: EdgeInsets.only(top: 8),
                 child: Text(
                   suggestion,
-                  style: TextStyle(fontSize: 14, color: Colors.red, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
           ],
@@ -154,14 +210,19 @@ class HealthPage extends StatelessWidget {
     final comparisonData = [
       {'label': 'Weight', 'userValue': '90 kg', 'idealValue': '68–75 kg'},
       {'label': 'BMI', 'userValue': '29.4', 'idealValue': '18.5–24.9'},
-      {'label': 'Body Fat', 'userValue': '28%', 'idealValue': isMale ? '18–24%' : '25–31%'},
+      {
+        'label': 'Body Fat',
+        'userValue': '28%',
+        'idealValue': isMale ? '18–24%' : '25–31%'
+      },
       {'label': 'Muscle Mass', 'userValue': '45 kg', 'idealValue': '50–60 kg'},
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Comparison Table", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text("Comparison Table",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
@@ -174,14 +235,22 @@ class HealthPage extends StatelessWidget {
               return Container(
                 padding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
                 decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+                  border:
+                      Border(bottom: BorderSide(color: Colors.grey.shade300)),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(child: Text(row['label']!, style: TextStyle(fontSize: 14))),
-                    Expanded(child: Text(row['userValue']!, style: TextStyle(fontWeight: FontWeight.bold))),
-                    Expanded(child: Text(row['idealValue']!, style: TextStyle(fontSize: 13, color: Colors.green.shade700))),
+                    Expanded(
+                        child: Text(row['label']!,
+                            style: TextStyle(fontSize: 14))),
+                    Expanded(
+                        child: Text(row['userValue']!,
+                            style: TextStyle(fontWeight: FontWeight.bold))),
+                    Expanded(
+                        child: Text(row['idealValue']!,
+                            style: TextStyle(
+                                fontSize: 13, color: Colors.green.shade700))),
                   ],
                 ),
               );
@@ -208,8 +277,16 @@ class HealthPage extends StatelessWidget {
       return BarChartGroupData(
         x: index,
         barRods: [
-          BarChartRodData(toY: data[index][0], color: teal, width: 7, borderRadius: BorderRadius.circular(4)),
-          BarChartRodData(toY: data[index][1], color: pink, width: 7, borderRadius: BorderRadius.circular(4)),
+          BarChartRodData(
+              toY: data[index][0],
+              color: teal,
+              width: 7,
+              borderRadius: BorderRadius.circular(4)),
+          BarChartRodData(
+              toY: data[index][1],
+              color: pink,
+              width: 7,
+              borderRadius: BorderRadius.circular(4)),
         ],
         barsSpace: 4,
       );

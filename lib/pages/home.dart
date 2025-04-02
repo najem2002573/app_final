@@ -5,6 +5,8 @@ import 'package:app/pages/workout.dart'; // Ensure this is the correct path
 import 'package:app/pages/calories.dart'; // Ensure this is the correct path
 import 'package:app/pages/settings.dart'; // Ensure this is the correct path
 import 'package:fl_chart/fl_chart.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+
 //last version
 class HomePage extends StatefulWidget {
   @override
@@ -12,47 +14,78 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // To keep track of the selected index and corresponding page
   int _selectedIndex = 0;
+
   final List<Widget> _pages = [
     HomePageContent(),
     Calories(),
     Settings(),
+    FitnessDashboardScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: _pages[_selectedIndex], // Show the page based on the selected index
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex, // Set the current index
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index; // Update the index when an icon is clicked
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard, color: _selectedIndex == 0 ? Colors.green : Colors.grey[800]),
-            label: "Dashboard",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.copyright, color: _selectedIndex == 1 ? Colors.green : Colors.black),
-            label: "Calories",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings, color: _selectedIndex == 2 ? Colors.green : Colors.black),
-            label: "Settings",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.sports_gymnastics, color: _selectedIndex == 2 ? Colors.green : Colors.black),
-            label: "gyms",
-          ),
+      body: _pages[_selectedIndex],
+      bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildBottomNavBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 10,
+            offset: Offset(0, -3),
+          )
         ],
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255), // Navbar color
-        selectedItemColor: Colors.green, // Color of the selected icon
-        unselectedItemColor: Colors.black, // Color of unselected icons
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.deepPurple,
+          unselectedItemColor: Colors.grey,
+          backgroundColor: Colors.white,
+          selectedFontSize: 14,
+          unselectedFontSize: 12,
+          elevation: 10,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: "Home",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.copyright),
+              label: "Calories",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.settings_outlined),
+              label: "Settings",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.sports_gymnastics),
+              label: "Gyms",
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -65,7 +98,6 @@ class HomePageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Home Page')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -85,11 +117,11 @@ class HomePageContent extends StatelessWidget {
                 const SizedBox(height: 20),
                 _buildMyPlanSection(context),
                 const SizedBox(height: 20),
-                _buildProbabilityChart(75),
+                buildSuccessProbabilityCard(),
                 const SizedBox(height: 20),
                 _buildWeeklyStats(),
                 const SizedBox(height: 20),
-                _buildMotivationalMovies(),
+                _buildMotivationalMusic(),
               ],
             ),
           ),
@@ -109,15 +141,19 @@ class HomePageContent extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            _buildPlanCardworkout("Workout", "2 hours", Icons.fitness_center, Colors.purple.shade100, context),
+            _buildPlanCardworkout("WorkOut", "2 hours", Icons.fitness_center,
+                Colors.purple.shade100, context),
             const SizedBox(width: 10),
-            _buildPlanCardhealth("Health", "", Icons.heart_broken, Colors.grey.shade200, context),
+            _buildPlanCardhealth("Health", "", Icons.heart_broken,
+                Colors.grey.shade200, context),
           ],
         ),
         const SizedBox(height: 10),
         Row(
           children: [
-            _buildPlanCardfood("Food", "1832 kcal", Icons.restaurant, Colors.white, context, border: true),
+            _buildPlanCardfood(
+                "Food", "1832 kcal", Icons.restaurant, Colors.white, context,
+                border: true),
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
@@ -135,65 +171,56 @@ class HomePageContent extends StatelessWidget {
     );
   }
 
-
-
-
-          //workoutcard
-Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color color,BuildContext context, {bool border = false}) {
-  return Expanded(
-    child: GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => FitnessDashboardScreen()), // Navigate to WorkoutPage
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
-          border: border ? Border.all(color: Colors.black) : null,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 24),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text(subtitle, style: const TextStyle(color: Colors.grey)),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-
-//food card
-  Widget _buildPlanCardfood(String title, String subtitle, IconData icon, Color color, BuildContext context, {bool border = false}) {
+  Widget _buildPlanCardworkout(String title, String subtitle, IconData icon,
+      Color color, BuildContext context,
+      {bool border = false}) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => DailyDietPage()), // Navigate to your HealthPage
+            MaterialPageRoute(builder: (context) => FitnessDashboardScreen()),
           );
         },
         child: Container(
+          margin: EdgeInsets.all(8),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.9), color.withOpacity(0.7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
             border: border ? Border.all(color: Colors.black) : null,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 24),
-              const SizedBox(height: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(subtitle, style: const TextStyle(color: Colors.grey)),
+              CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.2),
+                child: Icon(icon, color: Colors.black, size: 20),
+                radius: 18,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.black54, fontSize: 14),
+              ),
             ],
           ),
         ),
@@ -201,32 +228,56 @@ Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color
     );
   }
 
-
-
-
-  Widget _buildPlanCardhealth(String title, String subtitle, IconData icon, Color color, BuildContext context, {bool border = false}) {
+  Widget _buildPlanCardfood(String title, String subtitle, IconData icon,
+      Color color, BuildContext context,
+      {bool border = false}) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => HealthPage()), // Navigate to your HealthPage
+            MaterialPageRoute(builder: (context) => DailyDietPage()),
           );
         },
         child: Container(
+          margin: EdgeInsets.all(8),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.9), color.withOpacity(0.7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
             border: border ? Border.all(color: Colors.black) : null,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 24),
-              const SizedBox(height: 8),
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(subtitle, style: const TextStyle(color: Colors.grey)),
+              CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.2),
+                child: Icon(icon, color: Colors.black, size: 20),
+                radius: 18,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.black54, fontSize: 14),
+              ),
             ],
           ),
         ),
@@ -234,39 +285,123 @@ Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color
     );
   }
 
-  // Similar changes can be made to the other plan cards (_buildPlanCardworkout, _buildPlanCardfood)
-  // I am skipping repeating those parts for brevity.
-  
-  Widget _buildProbabilityChart(double probability) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text('Success Probability', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 12),
-            Center(
-              child: SizedBox(
-              width: 100,
-              height: 100,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CircularProgressIndicator(
-                    strokeWidth: 15.0,
-                    value: 0.65,
-                    backgroundColor: Colors.white,
-                    color: Colors.purple.shade300,
-                  ),
-                  Center(child: Text("65%", style: TextStyle(fontWeight: FontWeight.bold))),
-                ],
-              ),),
-            )
-          ],
+  Widget _buildPlanCardhealth(String title, String subtitle, IconData icon,
+      Color color, BuildContext context,
+      {bool border = false}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => HealthPage()),
+          );
+        },
+        child: Container(
+          margin: EdgeInsets.all(8),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.9), color.withOpacity(0.7)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+            border: border ? Border.all(color: Colors.black) : null,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.white.withOpacity(0.2),
+                child: Icon(icon, color: Colors.black, size: 20),
+                radius: 18,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.black54, fontSize: 14),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget buildSuccessProbabilityCard() {
+    double probability = 0.65;
+    return Container(
+      width: 500,
+      height: 206,
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.teal.shade100, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.deepPurple.withOpacity(0.2),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.show_chart_rounded, color: Colors.deepPurple),
+              SizedBox(width: 6),
+              Text(
+                "Success Probability",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 20,
+          ),
+          CircularPercentIndicator(
+            radius: 65.0,
+            lineWidth: 10.0,
+            animation: true,
+            animationDuration: 800,
+            percent: probability,
+            center: Text(
+              "${(probability * 100).toInt()}%",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18.0,
+                color: Colors.deepPurple,
+              ),
+            ),
+            circularStrokeCap: CircularStrokeCap.round,
+            backgroundColor: Colors.grey.shade200,
+            progressColor: Colors.deepPurple,
+          ),
+        ],
       ),
     );
   }
@@ -289,35 +424,46 @@ Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color
           ),
           child: BarChart(
             BarChartData(
-          barGroups: List.generate(7, (index) => _buildBar(weeklyStats[index], index == 4)),
-          borderData: FlBorderData(show: false),
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  List<String> days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-                  return Padding(
-                    padding: EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      days[value.toInt()],
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                  );
-                },
+              barGroups: List.generate(
+                  7, (index) => _buildBar(weeklyStats[index], index == 4)),
+              borderData: FlBorderData(show: false),
+              gridData: FlGridData(show: false),
+              titlesData: FlTitlesData(
+                leftTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      List<String> days = [
+                        "Mon",
+                        "Tue",
+                        "Wed",
+                        "Thu",
+                        "Fri",
+                        "Sat",
+                        "Sun"
+                      ];
+                      return Padding(
+                        padding: EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          days[value.toInt()],
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87),
+                        ),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
           ),
         ),
       ],
     );
   }
-
-  
 
   BarChartGroupData _buildBar(double value, bool highlight) {
     return BarChartGroupData(
@@ -326,12 +472,12 @@ Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color
         BarChartRodData(
           toY: value,
           gradient: LinearGradient(
-          colors: highlight 
-            ? [Colors.greenAccent, Colors.blueAccent] 
-            : [Colors.greenAccent,Colors.purple.shade300],
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-        ),
+            colors: highlight
+                ? [Colors.greenAccent, Colors.blueAccent]
+                : [Colors.greenAccent, Colors.purple.shade300],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ),
           width: 20,
           borderRadius: BorderRadius.circular(6),
           backDrawRodData: BackgroundBarChartRodData(
@@ -345,77 +491,127 @@ Widget _buildPlanCardworkout(String title, String subtitle, IconData icon, Color
   }
 }
 
+Widget _buildMotivationalMusic() {
+  List<Map<String, String>> musicList = [
+    {
+      "title": "Eye of the Tiger",
+      "artist": "Survivor",
+      "image":
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTl7kztrZfASzd0Wqc-yEPLXYvn1i9Lq2eFsA&s"
+    },
+    {
+      "title": "Stronger",
+      "artist": "Kanye West",
+      "image":
+          "https://i.discogs.com/7HgqlxY5-5Z-JE8mDWXCoUWYB08NW0rj3IdrnDOSs8o/rs:fit/g:sm/q:90/h:526/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU3NjU1/ODQtMTQ5ODMwMjAx/Ny03ODY2LmpwZWc.jpeg"
+    },
+    {
+      "title": "Lose Yourself",
+      "artist": "Eminem",
+      "image":
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5m80Y6CLaXt4CvNTSvsMREuvrMV5AoAmLgw&s"
+    },
+    {
+      "title": "Till I Collapse",
+      "artist": "Eminem ft. Nate Dogg",
+      "image":
+          "https://i1.sndcdn.com/artworks-000161139232-rkikne-t1080x1080.jpg"
+    },
+  ];
 
-
-  Widget _buildMotivationalMovies() {
-    List<Map<String, String>> movies = [
-      {
-        "title": "Rocky",
-        "image": "https://upload.wikimedia.org/wikipedia/en/1/18/Rocky_poster.jpg"
-      },
-      {
-        "title": "Creed",
-        "image": "https://upload.wikimedia.org/wikipedia/en/2/24/Creed_poster.jpg"
-      },
-      {
-        "title": "The Karate Kid",
-        "image": "https://upload.wikimedia.org/wikipedia/en/a/a9/Karate_kid.jpg"
-      },
-      {
-        "title": "Million Dollar Baby",
-        "image": "https://upload.wikimedia.org/wikipedia/en/d/d3/Million_Dollar_Baby_poster.jpg"
-      }
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Motivational Movies",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          height: 10,
-        ),
-        Container(
-          height: 300,
-          child: ListView.builder(
-            itemCount: movies.length,
-            itemBuilder: (context, index) {
-              return Card(
-                elevation: 4,
-                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        "🎧 Motivational Music",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      SizedBox(
+        height: 300,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: musicList.length,
+          itemBuilder: (context, index) {
+            final music = musicList[index];
+            return TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: 1),
+              duration: Duration(milliseconds: 700 + index * 100),
+              builder: (context, value, child) {
+                return Transform.scale(
+                  scale: value,
+                  child: child,
+                );
+              },
+              child: Container(
+                width: 220,
+                margin: EdgeInsets.only(right: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [Colors.deepPurple.shade100, Colors.white],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade300,
+                      blurRadius: 10,
+                      offset: Offset(0, 5),
+                    )
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(16)),
                       child: Image.network(
-                        movies[index]["image"]!,
-                        width: 100,
-                        height: 120,
+                        music["image"]!,
+                        height: 170,
+                        width: double.infinity,
                         fit: BoxFit.cover,
                       ),
                     ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Text(
-                          movies[index]["title"]!,
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            music["title"]!,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            music["artist"]!,
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 13),
+                          ),
+                          SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Icon(Icons.play_circle_fill,
+                                  color: Colors.deepPurple, size: 24),
+                              SizedBox(width: 6),
+                              Text("Play",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.deepPurple)),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
+                    )
                   ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-      ],
-    );
-  }
-
-
+      ),
+    ],
+  );
+}

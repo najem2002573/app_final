@@ -1,153 +1,145 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:app/intro%20pages/agepage.dart';
 
-class ChooseGenderScreen extends StatefulWidget {
+class PersonalInfoPage extends StatefulWidget {
   @override
-  _ChooseGenderScreenState createState() => _ChooseGenderScreenState();
+  _PersonalInfoPageState createState() => _PersonalInfoPageState();
 }
 
-class _ChooseGenderScreenState extends State<ChooseGenderScreen> {
-  String? selectedGender;
+class _PersonalInfoPageState extends State<PersonalInfoPage> {
+  String selectedGender = "Male";
+  DateTime selectedDate = DateTime.now();
 
-  final List<Map<String, dynamic>> genderOptions = [
-    {'label': 'Woman', 'emoji': '👩'},
-    {'label': 'Man', 'emoji': '👨'},
-    {'label': 'Gender neutral', 'emoji': '🧑'},
-  ];
+  final String maleImageUrl =
+      "https://www.shareicon.net/data/512x512/2015/09/18/103160_man_512x512.png";
+  final String femaleImageUrl =
+      "https://static.vecteezy.com/system/resources/previews/004/899/680/non_2x/beautiful-blonde-woman-with-makeup-avatar-for-a-beauty-salon-illustration-in-the-cartoon-style-vector.jpg";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
-        ),
-        title: Text(
-          "Step 1 of 8",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              "Skip",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-          )
-        ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 20),
-            Center(
-              child: Text(
-                "Choose gender",
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 30),
+              Text(
+                "Please improve your personal informat...",
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
                 ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            SizedBox(height: 30),
-            Column(
-              children: genderOptions.map((option) {
-                bool isSelected = selectedGender == option['label'];
-                return GestureDetector(
-                  onTap: () {
+              SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildGenderOption(
+                      "Male", maleImageUrl, selectedGender == "Male"),
+                  SizedBox(width: 24),
+                  _buildGenderOption(
+                      "Female", femaleImageUrl, selectedGender == "Female"),
+                ],
+              ),
+              SizedBox(height: 40),
+              Text(
+                "Select Date of Birth",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Expanded(
+                child: CupertinoDatePicker(
+                  initialDateTime: selectedDate,
+                  maximumDate: DateTime.now(),
+                  mode: CupertinoDatePickerMode.date,
+                  onDateTimeChanged: (DateTime date) {
                     setState(() {
-                      selectedGender = option['label'];
+                      selectedDate = date;
                     });
                   },
-                  child: Container(
-                    width: double.infinity,
-                    margin: EdgeInsets.only(bottom: 15),
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? Colors.black : Colors.transparent,
-                        width: 2,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 3,
-                                offset: Offset(0, 2),
-                              )
-                            ]
-                          : [],
-                    ),
-                    child: Row(
-                      children: [
-                        Text(
-                          option['emoji'],
-                          style: TextStyle(fontSize: 24),
-                        ),
-                        SizedBox(width: 15),
-                        Text(
-                          option['label'],
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Spacer(),
-                        if (isSelected)
-                          Icon(Icons.check, color: Colors.black, size: 22),
-                      ],
+                ),
+              ),
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Next button logic
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal.shade400,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(32),
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            Spacer(),
-            GestureDetector(
-              onTap: selectedGender != null ? () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SelectAgeScreen()),
-          );
-        }
-      : null,
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 15),
-                decoration: BoxDecoration(
-                  color: selectedGender != null ? Colors.black : Colors.grey,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "Continue",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                  child: Text(
+                    "Next",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 20),
-          ],
+              SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
+  Widget _buildGenderOption(String gender, String imageUrl, bool isSelected) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedGender = gender;
+        });
+      },
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 42,
+            backgroundColor:
+                isSelected ? Colors.purple.shade100 : Colors.grey.shade200,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                ClipOval(
+                  child: Image.network(
+                    imageUrl,
+                    height: 65,
+                    width: 65,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                if (isSelected)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Icon(Icons.check_circle,
+                        color: Colors.teal.shade400, size: 20),
+                  )
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            gender,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isSelected
+                  ? Colors.black
+                  : const Color.fromARGB(255, 158, 158, 158),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

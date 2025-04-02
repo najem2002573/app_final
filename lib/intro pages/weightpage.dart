@@ -1,170 +1,166 @@
-import 'package:app/intro%20pages/colestrol.dart';
 import 'package:flutter/material.dart';
 
-
-class SelectWeightScreen extends StatefulWidget {
+class HeightWeightPickerPage extends StatefulWidget {
   @override
-  _SelectWeightScreenState createState() => _SelectWeightScreenState();
+  _HeightWeightPickerPageState createState() => _HeightWeightPickerPageState();
 }
 
-class _SelectWeightScreenState extends State<SelectWeightScreen> {
-  String selectedUnit = "kg";
-  TextEditingController weightController = TextEditingController(text: "60.3");
+class _HeightWeightPickerPageState extends State<HeightWeightPickerPage> {
+  int height = 170;
+  int weight = 66;
+
+  final double itemWidth = 80;
+  final ScrollController _heightController = ScrollController();
+  final ScrollController _weightController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _heightController.addListener(() {
+      int selected =
+          (heightMin + (_heightController.offset / itemWidth).round())
+              .clamp(heightMin, heightMax);
+      if (selected != height) {
+        setState(() {
+          height = selected;
+        });
+      }
+    });
+    _weightController.addListener(() {
+      int selected =
+          (weightMin + (_weightController.offset / itemWidth).round())
+              .clamp(weightMin, weightMax);
+      if (selected != weight) {
+        setState(() {
+          weight = selected;
+        });
+      }
+    });
+  }
+
+  final int heightMin = 140;
+  final int heightMax = 220;
+  final int weightMin = 40;
+  final int weightMax = 160;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
-        ),
-        title: Text(
-          "Step 5 of 8",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              "Skip",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-          )
-        ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 20),
-            Text(
-              "Select weight",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+            const SizedBox(height: 100),
+            const Text("Set Your Height",
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                )),
+            const SizedBox(height: 25),
+            Text("$height cm",
+                style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal)),
+            const SizedBox(height: 8),
+            _buildHorizontalPicker(
+              controller: _heightController,
+              min: heightMin,
+              max: heightMax,
+              value: height,
             ),
-            SizedBox(height: 20),
-            _buildUnitToggle(),
-            SizedBox(height: 30),
-            _buildWeightInput(),
-            Spacer(),
-            GestureDetector(
-              onTap: weightController.text.isNotEmpty ? () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SelectCholesterolScreen()),
-          );
-        } : null,
-              child: Container(
+            const SizedBox(height: 100),
+            const Text("Set Your Weight",
+                style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87)),
+            const SizedBox(height: 25),
+            Text("$weight kg",
+                style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal)),
+            const SizedBox(height: 8),
+            _buildHorizontalPicker(
+              controller: _weightController,
+              min: weightMin,
+              max: weightMax,
+              value: weight,
+            ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: SizedBox(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 15),
-                decoration: BoxDecoration(
-                  color: weightController.text.isNotEmpty ? Colors.black : Colors.grey,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "Continue",
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal.shade400,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
                   ),
+                  child: const Text("Next",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-  // Widget for unit toggle (Pound / Kilogram)
-  Widget _buildUnitToggle() {
-    return Container(
-      width: 220,
-      padding: EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: ["Pound", "Kilogram"].map((unit) {
-          bool isSelected = unit.toLowerCase() == selectedUnit.toLowerCase();
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedUnit = unit.toLowerCase();
-                weightController.text = selectedUnit == "pound" ? "132.7" : "60.3";
-              });
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.black : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                unit,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isSelected ? Colors.white : Colors.black,
-                  fontWeight: FontWeight.w500,
+  Widget _buildHorizontalPicker({
+    required ScrollController controller,
+    required int min,
+    required int max,
+    required int value,
+  }) {
+    return SizedBox(
+      height: 100,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ListView.builder(
+            controller: controller,
+            scrollDirection: Axis.horizontal,
+            itemCount: max - min + 1,
+            itemBuilder: (context, index) {
+              int val = min + index;
+              bool isSelected = val == value;
+              return Container(
+                width: itemWidth,
+                alignment: Alignment.center,
+                child: Text(
+                  "$val",
+                  style: TextStyle(
+                    fontSize: isSelected ? 24 : 16,
+                    color: isSelected ? Colors.purple.shade200 : Colors.grey,
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  // Widget for weight input field
-  Widget _buildWeightInput() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 120,
-          height: 60,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300, width: 2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: TextField(
-            controller: weightController,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-            ),
-            onChanged: (value) {
-              setState(() {});
+              );
             },
           ),
-        ),
-        SizedBox(width: 10),
-        Text(
-          selectedUnit == "pound" ? "lb" : "kg",
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
-        ),
-      ],
+          Positioned(
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 2,
+              height: 50,
+              color: Colors.grey.shade400,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
