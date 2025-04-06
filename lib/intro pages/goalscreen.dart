@@ -1,6 +1,6 @@
 import 'package:app/intro%20pages/heightpage.dart';
+import 'package:app/pages/home.dart';
 import 'package:flutter/material.dart';
-
 
 class ChooseGoalScreen extends StatefulWidget {
   @override
@@ -24,26 +24,12 @@ class _ChooseGoalScreenState extends State<ChooseGoalScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
         ),
-        title: Text(
-          "Step 3 of 8",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              "Skip",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-          )
-        ],
+        
+        
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -59,7 +45,7 @@ class _ChooseGoalScreenState extends State<ChooseGoalScreen> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.teal,
                 ),
               ),
             ),
@@ -111,7 +97,8 @@ class _ChooseGoalScreenState extends State<ChooseGoalScreen> {
                         ),
                         Spacer(),
                         if (isSelected)
-                          Icon(Icons.check, color: Colors.black, size: 22),
+                          Icon(Icons.check_circle,
+                              color: Colors.teal, size: 22),
                       ],
                     ),
                   ),
@@ -120,22 +107,26 @@ class _ChooseGoalScreenState extends State<ChooseGoalScreen> {
             ),
             Spacer(),
             GestureDetector(
-              onTap: selectedGoal != null ? () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => SelectHeightScreen()),
-          );
-        } : null,
+              onTap: selectedGoal != null
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => HomePage()),
+                      );
+                    }
+                  : null,
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 15),
                 decoration: BoxDecoration(
-                  color: selectedGoal != null ? Colors.black : Colors.grey,
+                  color:
+                      selectedGoal != null ? Colors.teal.shade400 : Colors.grey,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  "Start Training",
+                  "Lets start the journey!",
                   style: TextStyle(
                     fontSize: 18,
                     color: Colors.white,

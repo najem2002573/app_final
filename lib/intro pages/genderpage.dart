@@ -1,3 +1,4 @@
+import 'package:app/intro%20pages/weightpage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -7,8 +8,8 @@ class PersonalInfoPage extends StatefulWidget {
 }
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
-  String selectedGender = "Male";
-  DateTime selectedDate = DateTime.now();
+  String selectedGender = ""; // empty by default
+  DateTime? selectedDate; // null by default
 
   final String maleImageUrl =
       "https://www.shareicon.net/data/512x512/2015/09/18/103160_man_512x512.png";
@@ -17,6 +18,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isFormValid = selectedGender.isNotEmpty && selectedDate != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -29,9 +32,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               Text(
                 "Please improve your personal informat...",
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 40),
@@ -48,11 +51,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               SizedBox(height: 40),
               Text(
                 "Select Date of Birth",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.teal),
               ),
               Expanded(
                 child: CupertinoDatePicker(
-                  initialDateTime: selectedDate,
+                  initialDateTime: selectedDate ?? DateTime(2000),
                   maximumDate: DateTime.now(),
                   mode: CupertinoDatePickerMode.date,
                   onDateTimeChanged: (DateTime date) {
@@ -67,21 +73,27 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Next button logic
-                  },
+                  onPressed: isFormValid
+                      ? () {
+                          // Navigate or process
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HeightWeightPickerPage()));
+                        }
+                      : null, // disables button
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade400,
+                    backgroundColor: isFormValid
+                        ? Colors.teal.shade400
+                        : Colors.grey.shade300,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(32),
                     ),
                   ),
                   child: Text(
-                    "Next",
+                    "Continue",
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                        color:
+                            isFormValid ? Colors.white : Colors.grey.shade600),
                   ),
                 ),
               ),

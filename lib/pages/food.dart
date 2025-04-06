@@ -1,3 +1,4 @@
+import 'package:app/pages/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:convert';
@@ -24,7 +25,7 @@ class DailyDietPage extends StatefulWidget {
 
 
 
-
+BackendManager manager=BackendManager();
 
 class _DailyDietPageState extends State<DailyDietPage> {
 
@@ -85,12 +86,16 @@ Future<Map<String, dynamic>> extractNutritionalData(XFile image) async {
     if (response.statusCode == 200) {
       // Parse the response and extract nutritional data (carbs, proteins, etc.)
       Map<String, dynamic> nutritionInfo = jsonDecode(responseData);
+      print(nutritionInfo);
+      print("***********************==========================************************==========");
       return nutritionInfo;
     } else {
       throw Exception('Failed to fetch nutritional data');
     }
   } catch (e) {
     print('Error extracting nutritional data: $e');
+    
+      print("***********************==========================************************==========");
     rethrow;
   }
 }
@@ -293,7 +298,7 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
             duration: Duration(milliseconds: 400),
             curve: Curves.easeInOut,
             child: ElevatedButton.icon(
-              onPressed: pickAndUploadImage,
+              onPressed: manager.pickAndUploadImage,
               icon: Icon(Icons.add, color: Colors.white),
               label: Text(
                 "Add Meals",

@@ -1,10 +1,10 @@
 import 'package:app/intro%20pages/activities.dart';
 import 'package:flutter/material.dart';
 
-
 class ChooseTrainingLevelScreen extends StatefulWidget {
   @override
-  _ChooseTrainingLevelScreenState createState() => _ChooseTrainingLevelScreenState();
+  _ChooseTrainingLevelScreenState createState() =>
+      _ChooseTrainingLevelScreenState();
 }
 
 class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
@@ -24,26 +24,11 @@ class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () {
+              Navigator.of(context).pop(); 
+          },
         ),
-        title: Text(
-          "Step 7 of 8",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: Text(
-              "Skip",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
-            ),
-          )
-        ],
+        
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -59,7 +44,7 @@ class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.teal,
                 ),
               ),
             ),
@@ -94,25 +79,34 @@ class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
                             ]
                           : [],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          level['title']!,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              level['title']!,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              level['subtitle']!,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 5),
-                        Text(
-                          level['subtitle']!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
+                        if (isSelected)
+                          Icon(Icons.check_circle,
+                              color: Colors.teal, size: 22),
                       ],
                     ),
                   ),
@@ -121,17 +115,22 @@ class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
             ),
             Spacer(),
             GestureDetector(
-              onTap: selectedLevel != null ? () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ChooseActivitiesScreen()),
-          );
-        } : null,
+              onTap: selectedLevel != null
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChooseActivitiesScreen()),
+                      );
+                    }
+                  : null,
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 15),
                 decoration: BoxDecoration(
-                  color: selectedLevel != null ? Colors.black : Colors.grey,
+                  color: selectedLevel != null
+                      ? Colors.teal.shade400
+                      : Colors.grey,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,

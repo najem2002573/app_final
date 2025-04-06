@@ -1,7 +1,7 @@
+import 'package:app/intro%20pages/goalscreen.dart';
 import 'package:app/pages/home.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-
-
 
 class ChooseActivitiesScreen extends StatefulWidget {
   @override
@@ -30,23 +30,20 @@ class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
+          onPressed: () {
+              Navigator.of(context).pop();
+                  
+          },
         ),
-        title: Text(
-          "Step 8 of 8",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        centerTitle: true,
         actions: [
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ChooseGoalScreen()));
+                 
+            },
             child: Text(
               "Skip",
-              style: TextStyle(color: Colors.blue, fontSize: 16),
+              style: TextStyle(color: Colors.teal, fontSize: 16),
             ),
           )
         ],
@@ -65,7 +62,7 @@ class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Colors.teal,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -74,7 +71,8 @@ class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
             Expanded(
               child: ListView(
                 children: activities.map((activity) {
-                  bool isSelected = selectedActivities.contains(activity['label']);
+                  bool isSelected =
+                      selectedActivities.contains(activity['label']);
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -87,7 +85,8 @@ class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
                     },
                     child: Container(
                       margin: EdgeInsets.only(bottom: 15),
-                      padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                      padding:
+                          EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.white : activity['color'],
                         borderRadius: BorderRadius.circular(12),
@@ -123,7 +122,8 @@ class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
                             ),
                           ),
                           if (isSelected)
-                            Icon(Icons.check_circle, color: Colors.black, size: 22),
+                            Icon(Icons.check_circle,
+                                color: Colors.teal, size: 22),
                         ],
                       ),
                     ),
@@ -132,17 +132,21 @@ class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
               ),
             ),
             GestureDetector(
-              onTap: selectedActivities.isNotEmpty ? () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
-        } : null,
+              onTap: selectedActivities.isNotEmpty
+                  ? () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ChooseGoalScreen()),
+                      );
+                    }
+                  : null,
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 15),
                 decoration: BoxDecoration(
-                  color: selectedActivities.isNotEmpty ? Colors.black : Colors.grey,
+                  color: selectedActivities.isNotEmpty
+                      ? Colors.teal.shade400
+                      : Colors.grey,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 alignment: Alignment.center,

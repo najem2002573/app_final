@@ -1,3 +1,5 @@
+import 'package:app/intro%20pages/activities.dart';
+import 'package:app/intro%20pages/currentlevel.dart';
 import 'package:flutter/material.dart';
 
 class HeightWeightPickerPage extends StatefulWidget {
@@ -96,13 +98,15 @@ class _HeightWeightPickerPageState extends State<HeightWeightPickerPage> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ChooseTrainingLevelScreen()));
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.teal.shade400,
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
                   ),
-                  child: const Text("Next",
+                  child: const Text("Continue",
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
