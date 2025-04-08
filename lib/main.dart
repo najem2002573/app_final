@@ -7,6 +7,7 @@ import 'package:app/intro%20pages/goalscreen.dart';
 import 'package:app/intro%20pages/weightpage.dart';
 import 'package:app/pages/food.dart';
 import 'package:app/pages/manager.dart';
+import 'package:app/pages/workout.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:app/pages/home.dart';

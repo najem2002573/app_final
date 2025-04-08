@@ -6,7 +6,13 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io'; // For handling image files
 import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:convert';
-
+import 'dart:io';  // For File
+import 'package:image_picker/image_picker.dart';  // For ImagePicker and XFile
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:http/http.dart' as http;
+//define image picker
+final ImagePicker _picker = ImagePicker(); // Image picker instance
 
 
 class BackendManager
@@ -18,141 +24,135 @@ class BackendManager
 //connect to edamam api to get food nutrients when capturing a photo
 
 //used variables
-final ImagePicker _picker = ImagePicker(); // Image picker instance
 
 
 
 Future<void> pickAndUploadImage() async {
-  try {
-    print("starting the camera");
-    // Step 1: Pick an image from the camera
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-
-
-    if (image == null) {
-      // No image selected, return early
-      print("image is null ");
-      return ;
-    }
-
-    print("got the image");
-    String food=getDetection(image).toString();
-
-    if(food.isEmpty){
-      return;
-    }
-    else{
-      //print("Got food name now the nutrients");
-     // getNutrients("apple");
-    }
-    // Step 2: Upload the image to Firebase Storage
- 
-    // Step 3: Process the image to get nutritional data (e.g., carbs, proteins, etc.)
-   // Map<String, dynamic> nutritionalData = await extractNutritionalData(image);
-
-    // Step 4: Save the image URL and nutritional data to Firestore
- 
-    // Optionally, show a success message to the user
-   
-  }
-  catch(e){print("error capturing the image");}
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery); // Or use .camera for camera
 
   
+  if (pickedFile != null) {
+    final bytes = await pickedFile.readAsBytes();
+    print("picked the image and its good");
+    // Send image to FastAPI
+    final response = await sendImageToAPI(bytes);
 
+    //after getting the name of the food send it to US DATA to get its nutrients
+    print(response.toString());
+    getNutrients(response.toString());
+
+    if (response != null) {
+      print("the response is good,***");
+      print('Predicted Label: ${response['predicted_label']}');
+    }
+  }
+  else{
+    print("failed");
+  }
 }
 
 
 
 
-// getting the label of food to get its
-Future<String> getDetection(XFile? image) async {
-  final String apiKey = '944cd78d-2bdf-4873-bbe3-a76d63070520'; // Your DeepAI API key
-  
-  final url = Uri.parse('https://api.deepai.org/api/food-recognition');
-  
-  // Ensure that image is not null before proceeding
-  if (image == null) {
-    return 'No image selected';
-  }
+
+
+//using custome image model to identify food
+Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
+  final uri = Uri.parse('http://10.0.2.2:8000/predict/');
+  final request = http.MultipartRequest('POST', uri);
+
+  // Add the image as a file
+  request.files.add(http.MultipartFile.fromBytes('file', imageBytes, filename: 'image.jpg'));
 
   try {
-    final request = http.MultipartRequest('POST', url)
-      ..headers['api-key'] = apiKey
-      ..files.add(await http.MultipartFile.fromPath('image', image.path));
-    
     final response = await request.send();
-    
-    // Check if the response is successful (status code 200)
     if (response.statusCode == 200) {
-      print("Got the good response");
-      // Convert the response to a string
+      print("response is good");
       final responseData = await response.stream.bytesToString();
-      
-      // Decode the JSON response
-      final decodedData = json.decode(responseData);
-      
-      // Get the predicted food name
-      final foodName = decodedData['output']['food_name'] ?? 'No food detected';
-      return foodName;
+      print("the data is : "+responseData);
+      return jsonDecode(responseData);
     } else {
-      // Log the raw response for debugging
-      final responseData = await response.stream.bytesToString();
-      print("Error response: $responseData");
-      return 'Failed to detect food, status code: ${response.statusCode}';
+      print('Failed to get prediction');
+      return null;
     }
   } catch (e) {
-    return 'Error occurred: $e';
+    print('Error: $e');
+    return null;
   }
 }
 
 
-// getting the nutrients of the photo via edamam api
+ Future<Map<String, dynamic>> getNutrients(String foodItem) async {
 
+     final String apiKey = "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"; // Replace with your API key
+     final String apiUrl = "https://api.openai.com/v1/chat/completions";
 
-//analyze and get nutrients data
-Future<Map<String, dynamic>> getNutrients(String foodName) async {
-  print("starting collecting the nutrients");
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $apiKey",
+        },
+        body: jsonEncode({
+          "model": "gpt-3.5-turbo", // Use GPT-3.5 or GPT-4 model as per your requirement
+          "messages": [
+            {
+              "role": "user",
+              "content":
+                  "give me carbs, protein, calories, fats, and sugars of $foodItem in json format with no explanation"
+            }
+          ],
+        }),
+      );
 
-  //Via the api, search fot the nutrients of this food name we got from roboflow model
-
-  final url = Uri.parse('https://world.openfoodfacts.org/cgi/search.pl?search_terms=$foodName&search_simple=1&action=process&json=1');
-  
-  try {
-    final response = await http.get(url);
-print("HTTP status code: ${response.statusCode}");
-print("Response body: ${response.body}");
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-
-      final products = data['products'];
-      if (products != null && products.isNotEmpty) {
-        print("get the nutrients and the name of the food");
-        final product = products[0];
-        final nutrients = product['nutriments'] ?? {};
-        print("${product['product_name']} — this is product name from the result");
-
-        return {
-          'name': product['product_name'] ?? 'Unknown',
-          'calories': nutrients['energy-kcal_100g'] ?? 0,
-          'protein': nutrients['proteins_100g'] ?? 0,
-          'fat': nutrients['fat_100g'] ?? 0,
-          'carbs': nutrients['carbohydrates_100g'] ?? 0,
-          'fiber': nutrients['fiber_100g'] ?? 0,
-          'sugar': nutrients['sugars_100g'] ?? 0,
-        };
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final message = responseData['choices'][0]['message']['content'];
+        print("code is good now the response is: ");
+        print(jsonDecode(message));
+        return jsonDecode(message); // Assuming the response is valid JSON
       } else {
-        return {'error': 'No matching product found'};
+        throw Exception('Failed to load data: ${response.statusCode}');
       }
-    } else {
-      return {'error': 'HTTP Error: ${response.statusCode}'};
+    } catch (error) {
+      throw Exception('Error occurred: $error');
     }
-  } catch (e) {
-    return {'error': 'Exception: $e'};
   }
-}
 
 
-}
+
+
+
+
+
+}//end of backend manager class
+
+
+
+///============================================================================================================
+///============================================================================================================///============================================================================================================
+
+///============================================================================================================
+///============================================================================================================
+
+///============================================================================================================
+///============================================================================================================
+///============================================================================================================
+///============================================================================================================
+///============================================================================================================
+///============================================================================================================
+///============================================================================================================
+
+//                                        THE GPS PART
+
+
+
+
+
+
+
 
 
 
