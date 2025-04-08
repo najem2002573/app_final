@@ -13,7 +13,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 //define image picker
 final ImagePicker _picker = ImagePicker(); // Image picker instance
-
+// its safe now
 
 class BackendManager
 {
@@ -85,7 +85,7 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
 
  Future<Map<String, dynamic>> getNutrients(String foodItem) async {
 
-     final String apiKey = "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"; // Replace with your API key
+     final String apiKey = ""; // Replace with your API key
      final String apiUrl = "https://api.openai.com/v1/chat/completions";
 
     try {
