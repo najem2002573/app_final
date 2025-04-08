@@ -84,8 +84,8 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
 
 
  Future<Map<String, dynamic>> getNutrients(String foodItem) async {
-
-     final String apiKey = ""; 
+//api key 
+     final String kk = ""; 
      final String apiUrl = "https://api.openai.com/v1/chat/completions";
 
     try {
@@ -93,7 +93,7 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
         Uri.parse(apiUrl),
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer $apiKey",
+          "Authorization": "Bearer $kk",
         },
         body: jsonEncode({
           "model": "gpt-3.5-turbo", // Use GPT-3.5 or GPT-4 model as per your requirement
