@@ -85,7 +85,7 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
 
  Future<Map<String, dynamic>> getNutrients(String foodItem) async {
 
-     final String apiKey = ""; // Replace with your API key
+     final String apiKey = ""; 
      final String apiUrl = "https://api.openai.com/v1/chat/completions";
 
     try {
