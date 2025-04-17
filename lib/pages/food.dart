@@ -1,304 +1,293 @@
-import 'package:app/pages/manager.dart';
-import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'dart:convert';
-
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:io'; // For handling image files
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:image_picker/image_picker.dart';
+  import 'package:app/services/manager.dart';
+  import 'package:app/services/nutrients.dart';
+  import 'package:flutter/material.dart';
+  import 'package:fl_chart/fl_chart.dart';
+  //import 'package:firebase_storage/firebase_storage.dart'; // For uploading images to Firebase Storage
+ // For storing and retrieving data from Firestore
+  import 'package:hive_flutter/hive_flutter.dart';
 
 
-import 'package:flutter/material.dart'; // Core Flutter UI components
-import 'package:image_picker/image_picker.dart'; // For image selection
-//import 'package:firebase_storage/firebase_storage.dart'; // For uploading images to Firebase Storage
-import 'package:cloud_firestore/cloud_firestore.dart'; // For storing and retrieving data from Firestore
 
 
-class DailyDietPage extends StatefulWidget {
-  @override
-  State<DailyDietPage> createState() => _DailyDietPageState();
+
+
+  class DailyDietPage extends StatefulWidget {
+    @override
+    State<DailyDietPage> createState() => _DailyDietPageState();
+  }
+
+
+
+  //this object calls the manager class to contact backend and api services
+  final manager=BackendManager();
+
+  //this object has the nutrients of food we captured, we get it from the manager class after detecting 
+  // and calculating via api's
+
+
+
+
+
+  class _DailyDietPageState extends State<DailyDietPage> {
+
+
+      //dealing with water cups logic
+      int consumed =0;
+      final double glassMl = 0.25;
+      final double totalMl = 1.5;
+
+
+
+      //updating the water glasses when user clicks
+      void _handleCupTap(int index) {
+          setState(() {
+            if (consumed == index + 1) {
+              consumed--;
+            } else {
+              consumed = index + 1;
+            }
+          print("consume is : $consumed");
+        
+          todayNutrients.waterGlasses = consumed;
+          print("the hive value of consumed is : ${todayNutrients.waterGlasses}");
+          setTodayNutrients(todayNutrients);
+          Hive.box<Nutrients>('nutrientsBox').put('today', todayNutrients);
+          //todayNutrients.save(); // Save the update to Hive
+          });
+
+              // Optionally save to Hive:
+              // Hive.box('todayNutrients').put('waterGlasses', consumed);
+       }
+   
+
+      int loadWaterConsume(){
+        final box=Hive.box<Nutrients>('nutrientsBox');
+        setState(() {
+          this.consumed=box.get('today')?.waterGlasses ?? 0;
+          print("after loading the state of consumed water is set to $consumed");
+        });
+        return consumed;
+      }
+
+
+    //the nutrients are saved here
+  Nutrients todayNutrients = Nutrients();
+
+
+
+//load nutrients so we wont loose the data if app is closed
+@override
+void initState() {
+  super.initState();
+  
+  // Load nutrients from Hive asynchronously
+  loadNutrients();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    loadWaterConsume();
+  });
+  this.consumed = todayNutrients?.waterGlasses ?? 0;
+ // print("in the init state the loaded value of consumed is $consumed");
+  
+}
+
+void loadNutrients() async {
+  await manager.loadTodayNutrients();  // Load data from Hive
+  setState(() {
+    todayNutrients = manager.getNutrientValues();  // Update the UI with loaded data
+  });
 }
 
 
 
-BackendManager manager=BackendManager();
 
-class _DailyDietPageState extends State<DailyDietPage> {
+  //to update the nutrients each time we capture food photo, the call is from manager class from open ai api
+  //getnutrients() function
 
-File? _selectedImage; // Stores the selected image file
-final ImagePicker _picker = ImagePicker(); // Image picker instance
-TextEditingController foodController = TextEditingController(); // Controller for food input
-TextEditingController caloriesController = TextEditingController(); // Controller for calories input
 
-final TextEditingController _foodController = TextEditingController();
-final TextEditingController _caloriesController = TextEditingController();
 
- 
-// pick an image + upload it
-Future<void> pickAndUploadImage() async {
-  try {
-    // Step 1: Pick an image from the camera
-    XFile? image = await _picker.pickImage(source: ImageSource.camera);
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    if (image == null) {
-      // No image selected, return early
-      return;
+  void saveTodayToHive() async {
+  final box = Hive.box<Nutrients>('nutrientsBox');
+  await box.put('today', todayNutrients);
+}
+
+
+
+
+/// to set the nutrient . especially when starting the app 
+void setTodayNutrients(Nutrients todays){
+  setState(() {
+  this.todayNutrients=todays;  
+  });
+  
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    final List<String> dietTips = [
+      "Drink water before meals.",
+      "Add more fiber to your diet.",
+      "Avoid late-night snacking.",
+      "Eat more whole foods.",
+      "Include healthy fats in meals."
+    ];
+
+    @override
+    Widget build(BuildContext context) {
+      manager.loadTodayNutrients();
+      setState(() {
+        todayNutrients=manager.getNutrientValues();
+      });
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.teal.shade300,
+          elevation: 0,
+          centerTitle: true,
+          title: Row(
+            mainAxisSize: MainAxisSize.min, // Centers the content nicely
+            children: [
+              Text(
+                "Food",
+                style: TextStyle(color: Colors.white),
+              ),
+              Icon(Icons.restaurant, color: Colors.white),
+              SizedBox(width: 8),
+            ],
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              buildNutritionCard(),
+              SizedBox(height: 20),
+              _buildWaterIntakeCard(),
+              SizedBox(height: 20),
+              buildMealTimeSuggestions(),
+              SizedBox(height: 20),
+              buildMealBreakdown(),
+              SizedBox(height: 20),
+              buildNutrientBreakdownChart(),
+              SizedBox(height: 20),
+              buildDietTips(),
+            ],
+          ),
+        ),
+        
+      );
     }
 
-    // Step 2: Upload the image to Firebase Storage
-    String imageUrl = await uploadImageToFirebase(image);
-
-    // Step 3: Process the image to get nutritional data (e.g., carbs, proteins, etc.)
-    Map<String, dynamic> nutritionalData = await extractNutritionalData(image);
-
-    // Step 4: Save the image URL and nutritional data to Firestore
-    await saveImageDataToFirestore(imageUrl, nutritionalData);
-
-    // Optionally, show a success message to the user
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Image uploaded and processed successfully!')));
-  } catch (e) {
-    // Handle errors
-    print('Error uploading image: $e');
-  }
-}
-
-
-//analyze and get nutrients data
-Future<Map<String, dynamic>> extractNutritionalData(XFile image) async {
-  try {
-    // Example: Send image to an external API for food recognition
-    // For example, use Edamam API (you need an API key and proper endpoint setup)
-
-    var request = http.MultipartRequest('POST', Uri.parse('https://api.edamam.com/food-database/v2/nutrients'));
-    request.fields['app_id'] = 'your_app_id'; // API ID
-    request.fields['app_key'] = 'your_app_key'; // API Key
-
-    // Attach the image file
-    request.files.add(await http.MultipartFile.fromPath('image', image.path));
-
-    var response = await request.send();
-    var responseData = await response.stream.bytesToString();
-
-    if (response.statusCode == 200) {
-      // Parse the response and extract nutritional data (carbs, proteins, etc.)
-      Map<String, dynamic> nutritionInfo = jsonDecode(responseData);
-      print(nutritionInfo);
-      print("***********************==========================************************==========");
-      return nutritionInfo;
-    } else {
-      throw Exception('Failed to fetch nutritional data');
-    }
-  } catch (e) {
-    print('Error extracting nutritional data: $e');
-    
-      print("***********************==========================************************==========");
-    rethrow;
-  }
-}
-
-
-
-//upload it to firestore
-
-Future<String> uploadImageToFirebase(XFile image) async {
-  try {
-    // Get a reference to Firebase Storage
-    FirebaseStorage storage = FirebaseStorage.instance;
-
-    // Create a reference for the image file
-    Reference ref = storage.ref().child('user_images/${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-    // Upload the file to Firebase Storage
-    await ref.putFile(File(image.path));
-
-    // Get the download URL of the uploaded image
-    String downloadUrl = await ref.getDownloadURL();
-    return downloadUrl;
-  } catch (e) {
-    print('Error uploading image to Firebase: $e');
-    rethrow;
-  }
-}
-
-
-//save
-
-Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutritionalData) async {
-  try {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    await firestore.collection('photos').add({
-      'imageUrl': imageUrl,
-      'timestamp': FieldValue.serverTimestamp(),
-      'nutritionalData': nutritionalData, // Save the nutritional data as a map
-    });
-  } catch (e) {
-    print('Error saving data to Firestore: $e');
-  }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-  final List<String> dietTips = [
-    "Drink water before meals.",
-    "Add more fiber to your diet.",
-    "Avoid late-night snacking.",
-    "Eat more whole foods.",
-    "Include healthy fats in meals."
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.teal.shade300,
-        elevation: 0,
-        centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min, // Centers the content nicely
-          children: [
-            Text(
-              "Food",
-              style: TextStyle(color: Colors.white),
-            ),
-            Icon(Icons.restaurant, color: Colors.white),
-            SizedBox(width: 8),
+    Widget buildNutritionCard() {
+      manager.loadTodayNutrients();
+      setState(() {
+        todayNutrients=manager.getNutrientValues();
+      });
+      return Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(colors: [Colors.white, Colors.grey.shade100]),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade300,
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            )
           ],
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildNutritionCard(),
-            SizedBox(height: 20),
-            _buildWaterIntakeCard(),
-            SizedBox(height: 20),
-            buildMealTimeSuggestions(),
-            SizedBox(height: 20),
-            buildMealBreakdown(),
-            SizedBox(height: 20),
-            buildNutrientBreakdownChart(),
-            SizedBox(height: 20),
-            buildDietTips(),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.local_dining), label: "Diet"),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.insert_chart), label: "Report"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
-      ),
-    );
-  }
-
-  Widget buildNutritionCard() {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(colors: [Colors.white, Colors.grey.shade100]),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.restaurant_menu, color: Colors.purple.shade400),
-              SizedBox(width: 8),
-              Text(
-                "Nutrition Intake",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Text("Consumed today", style: TextStyle(color: Colors.grey[600])),
-          SizedBox(height: 4),
-          Row(
-            children: [
-              Text(
-                "530",
-                style: TextStyle(
-                  color: Colors.purple.shade400,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Icon(Icons.restaurant_menu, color: Colors.purple.shade400),
+                SizedBox(width: 8),
+                Text(
+                  "Nutrition Intake",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-              ),
-              Text(
-                " / 2,500 Cal",
-                style: TextStyle(color: Colors.grey[600], fontSize: 16),
-              ),
-            ],
-          ),
-          SizedBox(height: 6),
-          TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: 530 / 2500),
-            duration: Duration(seconds: 1),
-            curve: Curves.easeOutCubic,
-            builder: (context, value, _) => LinearProgressIndicator(
-              value: value,
-              backgroundColor: Colors.grey.shade200,
-              color: Colors.purple.shade400,
+              ],
             ),
-          ),
-          SizedBox(height: 20),
-          GridView.count(
-            shrinkWrap: true,
-            crossAxisCount: 2,
-            childAspectRatio: 1.4,
-            physics: NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            children: [
-              _buildAnimatedMacroTile("Calories", "856Cal", Colors.cyan,
-                  Icons.local_fire_department),
-              _buildAnimatedMacroTile(
-                  "Protein", "128Cal", Colors.red, Icons.egg),
-              _buildAnimatedMacroTile("Carbs", "173Cal", Colors.amber,
-                  Icons.breakfast_dining_outlined),
-              _buildAnimatedMacroTile(
-                  "Fat", "199Cal", Colors.purple.shade400, Icons.icecream),
-            ],
-          ),
-          SizedBox(height: 20),
-          AnimatedContainer(
-            width: 500,
-            duration: Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-            child: ElevatedButton.icon(
-              onPressed: manager.pickAndUploadImage,
+            SizedBox(height: 12),
+            Text("Consumed today", style: TextStyle(color: Colors.grey[600])),
+            SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                  todayNutrients.getCals().toStringAsFixed(1),
+                  style: TextStyle(
+                    color: Colors.purple.shade400,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  " / 2,500 Cal",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                ),
+              ],
+            ),
+            SizedBox(height: 6),
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0, end: todayNutrients.getCals() / 2500),
+              duration: Duration(seconds: 1),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) => LinearProgressIndicator(
+                value: value,
+                backgroundColor: Colors.grey.shade200,
+                color: Colors.purple.shade400,
+              ),
+            ),
+            SizedBox(height: 20),
+            GridView.count(
+              shrinkWrap: true,
+              crossAxisCount: 2,
+              childAspectRatio: 1.4,
+              physics: NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              children: [
+                _buildAnimatedMacroTile("Sugars", todayNutrients.getSugars().toString(), Colors.cyan,
+                    Icons.local_fire_department,todayNutrients.getSugars()/50),
+                _buildAnimatedMacroTile(
+                    "Protein", todayNutrients.getproteins().toString(), Colors.red, Icons.egg,todayNutrients.protein/50),
+                _buildAnimatedMacroTile("Carbs", todayNutrients.getCarbs().toString(), Colors.amber,
+                    Icons.breakfast_dining_outlined,todayNutrients.getCarbs()/50),
+                _buildAnimatedMacroTile(
+                    "Fat", todayNutrients.getFats().toString(), Colors.purple.shade400, Icons.icecream,todayNutrients.getFats()/50),
+              ],
+            ),
+            SizedBox(height: 20),
+            AnimatedContainer(
+              width: 500,
+              duration: Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                      // Step 1: Pick image and get label
+                      String foodName = await manager.pickAndUploadImage();
+                      print("Picked food label: $foodName");
+
+
+                      // Step 2: Fetch nutrients from backend
+                      await manager.getNutrients(foodName);
+                      print("Fetched nutrients from backend");
+                      
+
+                      todayNutrients = manager.getNutrientValues();
+                      await manager.uploadTodayNutrientsFirebase();
+                      // Step 3: Update UI with new nutrients
+                      setState((){
+                        todayNutrients = todayNutrients;
+                        
+                        
+                      });
+                    foodName="";
+                    saveTodayToHive();
+                    
+                    },
               icon: Icon(Icons.add, color: Colors.white),
               label: Text(
                 "Add Meals",
@@ -323,7 +312,7 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
   }
 
   Widget _buildAnimatedMacroTile(
-      String title, String value, Color color, IconData icon) {
+      String title, String value, Color color, IconData icon,double val) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: 0.6),
       duration: Duration(milliseconds: 1000),
@@ -351,7 +340,7 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
                     width: 40,
                     height: 40,
                     child: CircularProgressIndicator(
-                      value: progress,
+                      value: val,
                       strokeWidth: 4,
                       backgroundColor: color.withOpacity(0.1),
                       valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -412,9 +401,9 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
   }
 
   Widget _buildWaterIntakeCard() {
-    int consumed = 3;
-    double currentMl = 2.6;
-    double totalMl = 5.0;
+
+    print("in the build of water row the initial consumed value is : $consumed");
+    double currentMl = glassMl * consumed;
 
     return Container(
       padding: EdgeInsets.all(16),
@@ -475,30 +464,34 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(6, (index) {
-              bool filled = index < consumed;
-              return AnimatedContainer(
-                duration: Duration(milliseconds: 500 + index * 100),
-                curve: Curves.easeInOut,
-                padding: EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: filled ? Colors.cyan : Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: filled
-                      ? [
-                          BoxShadow(
-                            color: Colors.cyan.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: Offset(0, 3),
-                          )
-                        ]
-                      : [],
-                ),
-                child: Icon(
-                  filled ? Icons.local_drink : Icons.local_drink_outlined,
-                  color: filled ? Colors.white : Colors.cyan,
-                ),
-              );
-            }),
+  bool filled = index < this.consumed;
+  return GestureDetector(
+    onTap: () => _handleCupTap(index),
+    child: AnimatedContainer(
+      duration: Duration(milliseconds: 500 + index * 100),
+      curve: Curves.easeInOut,
+      padding: EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: filled ? Colors.cyan : Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: filled
+            ? [
+                BoxShadow(
+                  color: Colors.cyan.withOpacity(0.2),
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
+                )
+              ]
+            : [],
+      ),
+      child: Icon(
+        filled ? Icons.local_drink : Icons.local_drink_outlined,
+        color: filled ? Colors.white : Colors.cyan,
+      ),
+    ),
+  );
+}),
+
           ),
         ],
       ),
@@ -653,6 +646,8 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
   }
 
   Widget buildNutrientBreakdownChart() {
+    double sumNutrients=(todayNutrients.getCarbs()+todayNutrients.getFats()+todayNutrients.getproteins());
+    if (sumNutrients==0) sumNutrients=1; 
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -692,19 +687,19 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
                       centerSpaceRadius: 40,
                       sections: [
                         PieChartSectionData(
-                            value: 40,
+                            value: todayNutrients.getCarbs()/sumNutrients,
                             title: 'Carbs',
                             color: Colors.amber,
                             radius: 55,
                             titleStyle: TextStyle(fontWeight: FontWeight.bold)),
                         PieChartSectionData(
-                            value: 30,
+                            value: todayNutrients.getproteins()/sumNutrients,
                             title: 'Protein',
                             color: Colors.redAccent,
                             radius: 55,
                             titleStyle: TextStyle(fontWeight: FontWeight.bold)),
                         PieChartSectionData(
-                            value: 30,
+                            value: todayNutrients.getFats()/sumNutrients,
                             title: 'Fat',
                             color: Colors.purpleAccent,
                             radius: 55,
@@ -751,6 +746,7 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
       ),
     );
   }
+  
 
   Widget _styledSuggestion(String meal, String time) {
     return Padding(
@@ -765,6 +761,8 @@ Future<void> saveImageDataToFirestore(String imageUrl, Map<String, dynamic> nutr
       ),
     );
   }
-}
+  
+ 
 
 
+  }

@@ -1,7 +1,9 @@
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class BodyMetricsChart extends StatelessWidget {
+  final manager=BackendManager();
   @override
   Widget build(BuildContext context) {
     return Scaffold(

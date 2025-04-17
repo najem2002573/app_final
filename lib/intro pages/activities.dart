@@ -1,5 +1,6 @@
 import 'package:app/intro%20pages/goalscreen.dart';
 import 'package:app/pages/home.dart';
+import 'package:app/services/manager.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +11,7 @@ class ChooseActivitiesScreen extends StatefulWidget {
 
 class _ChooseActivitiesScreenState extends State<ChooseActivitiesScreen> {
   List<String> selectedActivities = [];
-
+  final manager=BackendManager();
   final List<Map<String, dynamic>> activities = [
     {'label': 'Stretch', 'emoji': '🤸', 'color': Colors.blue.shade100},
     {'label': 'Cardio', 'emoji': '🏃', 'color': Colors.pink.shade100},

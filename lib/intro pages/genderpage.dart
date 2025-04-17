@@ -1,4 +1,5 @@
 import 'package:app/intro%20pages/weightpage.dart';
+import 'package:app/pages/food.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +12,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   String selectedGender = ""; // empty by default
   DateTime? selectedDate; // null by default
 
+
+
+  
   final String maleImageUrl =
       "https://www.shareicon.net/data/512x512/2015/09/18/103160_man_512x512.png";
   final String femaleImageUrl =
@@ -20,6 +24,21 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   Widget build(BuildContext context) {
     bool isFormValid = selectedGender.isNotEmpty && selectedDate != null;
 
+
+      //calc data diff till today to get age
+  int calculateAgeFromDateTime(DateTime? selectedDate) {
+  if (selectedDate == null) return 0; // Return 0 if there's no date selected.
+
+  final today = DateTime.now();
+  int age = today.year - selectedDate.year;
+
+  if (today.month < selectedDate.month ||
+      (today.month == selectedDate.month && today.day < selectedDate.day)) {
+    age--;
+  }
+
+  return age;
+}
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -64,6 +83,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   onDateTimeChanged: (DateTime date) {
                     setState(() {
                       selectedDate = date;
+                      print("data choosen is : $selectedDate");
                     });
                   },
                 ),
@@ -75,6 +95,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 child: ElevatedButton(
                   onPressed: isFormValid
                       ? () {
+                        manager.setGender(selectedGender);
+                        manager.setAge(calculateAgeFromDateTime(selectedDate));
+                        print("the calced age diff in date  is : ${calculateAgeFromDateTime(selectedDate)}");
                           // Navigate or process
                           Navigator.of(context).push(MaterialPageRoute(builder: (context)=>HeightWeightPickerPage()));
                         }
@@ -110,6 +133,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       onTap: () {
         setState(() {
           selectedGender = gender;
+          print("this is selected: $selectedGender");
         });
       },
       child: Column(
@@ -154,4 +178,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       ),
     );
   }
+
+
+  
 }

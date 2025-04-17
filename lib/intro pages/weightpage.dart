@@ -1,5 +1,7 @@
 import 'package:app/intro%20pages/activities.dart';
 import 'package:app/intro%20pages/currentlevel.dart';
+import 'package:app/pages/food.dart';
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 
 class HeightWeightPickerPage extends StatefulWidget {
@@ -10,7 +12,7 @@ class HeightWeightPickerPage extends StatefulWidget {
 class _HeightWeightPickerPageState extends State<HeightWeightPickerPage> {
   int height = 170;
   int weight = 66;
-
+  final manager=BackendManager();
   final double itemWidth = 80;
   final ScrollController _heightController = ScrollController();
   final ScrollController _weightController = ScrollController();
@@ -48,6 +50,14 @@ class _HeightWeightPickerPageState extends State<HeightWeightPickerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+              Navigator.of(context).pop();
+                  
+          }),
+      ),
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
@@ -99,6 +109,10 @@ class _HeightWeightPickerPageState extends State<HeightWeightPickerPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    print("the height is $height and the weight is $weight");
+                    print("the height is ${height.toDouble()} and weight is ${weight.toDouble()}");
+                    manager.setHeight(height.toDouble());
+                    manager.setWeight(weight.toDouble());
                     Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ChooseTrainingLevelScreen()));
                   },
                   style: ElevatedButton.styleFrom(

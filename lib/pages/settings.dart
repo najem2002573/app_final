@@ -1,10 +1,193 @@
+import 'package:app/pages/EditAccount.dart';
+import 'package:app/pages/Reminderpage.dart';
+import 'package:app/pages/calender.dart';
+import 'package:app/pages/login.dart';
+import 'package:app/services/appUser.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hive/hive.dart';
 
-class Settings extends StatelessWidget {
-  const Settings({super.key});
+
+class SettingsPage extends StatefulWidget {
+  @override
+  _SettingsPageState createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  
+  String userName = "Jane Kolinz";
+  String userImageUrl =
+      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg";
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    
+    return Scaffold(
+      backgroundColor: const Color(0xFFF9F9F9),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              Stack(
+                alignment: Alignment.bottomRight,
+                children: [
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage: NetworkImage(userImageUrl),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditAccountPage(),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: Colors.deepPurple.shade100,
+                      radius: 18,
+                      child: Icon(Icons.edit, color: Colors.deepPurple),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                userName,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Settings List
+              _buildSettingsTile("Calendar", Icons.calendar_today_outlined),
+              _buildSettingsTile("Reminder", Icons.notifications_outlined),
+              _buildSettingsTile("Rate us on App store", Icons.star_border,
+                  showTrailing: false),
+              _buildSettingsTile(
+                  "Terms & Conditions", Icons.description_outlined,
+                  showTrailing: false),
+              _buildlogOut("Sign out", Icons.logout,
+                  isDestructive: true, showTrailing: false),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSettingsTile(String title, IconData icon,
+      {bool isDestructive = false, bool showTrailing = true}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 6,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        leading: Icon(icon,
+            size: 26, color: isDestructive ? Colors.red : Colors.deepPurple),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            color: isDestructive ? Colors.red : Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: showTrailing
+            ? Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.grey.shade400)
+            : null,
+        onTap: () {
+          if (title == "Reminder") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ReminderPage()),
+            );
+          }
+          if (title == "Calendar") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CalendarPage()),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+Widget _buildlogOut(String title, IconData icon,
+      {bool isDestructive = false, bool showTrailing = true}) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 6,
+            offset: Offset(0, 4),
+          )
+        ],
+      ),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        leading: Icon(icon,
+            size: 26, color: isDestructive ? Colors.red : Colors.deepPurple),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 20,
+            color: isDestructive ? Colors.red : Colors.black,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: showTrailing
+            ? Icon(Icons.arrow_forward_ios,
+                size: 16, color: Colors.grey.shade400)
+            : null,
+        onTap: () async{
+          await FirebaseAuth.instance.signOut();
+          print("user has signed out from the firebase");
+  // Optional: Clear local user data
+  final box = Hive.box<AppUser>('userBox');
+  box.delete('currentUser');
+  print("deleting the local user data from hive local");
+  // Navigate to sign-in screen
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => SignInScreen()),
+    (route) => false,
+  );
+        },
+      ),
+    );
+  }
+  
+
+  Widget _buildSocialButton(IconData icon) {
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: Colors.deepPurple.shade50,
+      child: Icon(icon, size: 18, color: Colors.deepPurple),
+    );
   }
 }

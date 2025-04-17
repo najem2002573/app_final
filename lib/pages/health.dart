@@ -1,3 +1,4 @@
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -15,6 +16,7 @@ double get muscleMass =>
     (userWeight - (userWeight * (1.20 * userBMI / 100))) * 0.80;
 
 class HealthPage extends StatelessWidget {
+  final manager=BackendManager();
   @override
   Widget build(BuildContext context) {
     return Scaffold(

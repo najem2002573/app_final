@@ -1,3 +1,7 @@
+import 'package:app/pages/gymspage.dart';
+import 'package:app/services/appUser.dart';
+import 'package:app/services/manager.dart';
+import 'package:app/services/nutrients.dart';
 import 'package:flutter/material.dart';
 import 'package:app/pages/food.dart';
 import 'package:app/pages/health.dart'; // Ensure this is the correct path
@@ -5,26 +9,48 @@ import 'package:app/pages/workout.dart'; // Ensure this is the correct path
 import 'package:app/pages/calories.dart'; // Ensure this is the correct path
 import 'package:app/pages/settings.dart'; // Ensure this is the correct path
 import 'package:fl_chart/fl_chart.dart';
+import 'package:hive/hive.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 
 //last version
 class HomePage extends StatefulWidget {
+  
   @override
   _HomePageState createState() => _HomePageState();
+  
 }
+
+final manager=BackendManager();
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  
+  @override
+  void initState() {
+    // TODO: implement initState
+    
+    
 
+  }
+
+  Box b=Hive.box<AppUser>('userBox');
+  
+  
+
+
+  //get the real user name to print it in the welcome user placeholder
+  
   final List<Widget> _pages = [
     HomePageContent(),
     Calories(),
-    Settings(),
-    FitnessDashboardScreen(),
+    SettingsPage(),
+    Gymspage(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    AppUser user=b.get('currentUser');
+    print("the user loaded from the local cache is : ${user.username} and printed in the widget in home page");
     return Scaffold(
       backgroundColor: Colors.white,
       body: _pages[_selectedIndex],
@@ -73,17 +99,15 @@ class _HomePageState extends State<HomePage> {
               label: "Home",
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.copyright),
-              label: "Calories",
+              icon: Icon(Icons.location_pin),
+              label: "Gyms",
+
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
               label: "Settings",
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.sports_gymnastics),
-              label: "Gyms",
-            ),
+            
           ],
         ),
       ),
@@ -92,11 +116,25 @@ class _HomePageState extends State<HomePage> {
 }
 
 // A dummy content page for Home
-class HomePageContent extends StatelessWidget {
+class HomePageContent extends StatefulWidget {
+
+  @override
+  State<HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<HomePageContent> {
   final List<double> weeklyStats = [3, 4, 2, 5, 8, 5, 3];
 
   @override
   Widget build(BuildContext context) {
+    BackendManager manager=BackendManager();
+    
+    //getting the user name from the Hive
+       final box=Hive.box<AppUser>('userBox');
+       final user = box.get('currentUser');
+       final userName = user?.username ?? 'Guest';
+       print('the new username from the login is ${userName}');
+    
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -105,14 +143,34 @@ class HomePageContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "EVERYDAY WE'RE MUSCLEN",
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  "Hello, Alex 👋",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      children: [
+                        const Text(
+                          "EVERYDAY WE'RE MUSCLEN",
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        //const SizedBox(height: 4),
+                        Text(
+                          
+                          "  Hello, ${userName} 👋",
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    CircleAvatar(
+                        radius: 32,
+                        backgroundColor: Colors.pink.shade50,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundImage: NetworkImage(
+                            "https://st3.depositphotos.com/3431221/13621/v/450/depositphotos_136216036-stock-illustration-man-avatar-icon-hipster-character.jpg", // Replace later
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 _buildMyPlanSection(context),
@@ -157,7 +215,18 @@ class HomePageContent extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () async {
+                  //manager.testHive();
+                  //test the uid
+                  print("now deleting managers nutrients");
+                  await manager.deleteNutrients();
+                  Box box=Hive.box<Nutrients>('nutrientsBox');
+                            print(box.keys);  // will list all keys
+          print(box.values);  // will show all values
+
+
+                  
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,

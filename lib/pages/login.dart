@@ -1,7 +1,14 @@
+import 'package:app/pages/home.dart';
 import 'package:app/pages/register.dart';
 import 'package:app/pages/reset_pass.dart';
+import 'package:app/services/appUser.dart';
+import 'package:app/services/authUser.dart';
+import 'package:app/services/manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:hive/hive.dart';
 
 
 
@@ -15,7 +22,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
-
+  final manager=BackendManager();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,11 +178,67 @@ class _SignInScreenState extends State<SignInScreen> {
   // Widget for Login Button
   Widget _buildLoginButton() {
     return GestureDetector(
-      onTap: () {
-        if (_formKey.currentState!.validate()) {
-          // Perform login action
+    onTap: () async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      final user = await AuthService().signInUser(
+        emailController.text.trim(),
+        passwordController.text,
+      );
+
+      if (user != null) {
+        // ✅ Fetch user data from Firestore
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists) {
+          final data = doc.data();
+          final appUser = AppUser(
+            uid: user.uid,
+            username: data?['username'] ?? 'Guest',
+            email: data?['email'] ?? '',
+          );
+
+          appUser.SetIsSignedIn(true);
+
+          final box = Hive.box<AppUser>('userBox');
+          box.put('currentUser', appUser);
+
+          print('User name is: ${appUser.username}');
+          print("User data cached locally.");
+
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        } else {
+          _showSnackBar(context, "User data not found in Firestore.");
         }
-      },
+      } else {
+        _showSnackBar(context, "Sign-in failed. User not found.");
+      }
+    } on FirebaseAuthException catch (e) {
+            setState(() {
+          emailController.clear();
+          passwordController.clear();
+        });
+      String errorMessage = "Sign-in failed.";
+      Box box=Hive.box('userBox');
+      box.clear();
+      if (e.code == 'user-not-found') {
+        errorMessage = "No account found with this email.";
+      } else if (e.code == 'wrong-password') {
+        errorMessage = "Incorrect password.";
+      }
+      _showSnackBar(context, errorMessage);
+    } catch (e) {
+      _showSnackBar(context, "An unexpected error occurred.");
+      print("Login error: $e");
+    }
+  }
+},
+
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(vertical: 15),
@@ -224,6 +287,16 @@ class _SignInScreenState extends State<SignInScreen> {
       child: Icon(icon, size: 24,color: color,),
       
     );
+  }
+  
+  void _showSnackBar(BuildContext context, String errorMessage) {
+    ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(errorMessage),
+      backgroundColor: Colors.redAccent,
+      duration: Duration(seconds: 3),
+    ),
+  );
   }
 }
 

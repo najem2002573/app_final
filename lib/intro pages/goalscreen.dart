@@ -1,5 +1,6 @@
 import 'package:app/intro%20pages/heightpage.dart';
 import 'package:app/pages/home.dart';
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 
 class ChooseGoalScreen extends StatefulWidget {
@@ -9,7 +10,7 @@ class ChooseGoalScreen extends StatefulWidget {
 
 class _ChooseGoalScreenState extends State<ChooseGoalScreen> {
   String? selectedGoal;
-
+  final manager=BackendManager();
   final List<Map<String, dynamic>> goalOptions = [
     {'label': 'Lose weight', 'emoji': '🏋️'},
     {'label': 'Keep fit', 'emoji': '🍀'},
@@ -109,6 +110,12 @@ class _ChooseGoalScreenState extends State<ChooseGoalScreen> {
             GestureDetector(
               onTap: selectedGoal != null
                   ? () {
+                    
+                    print("the user goal is : $selectedGoal");
+                    manager.setGoal(selectedGoal.toString());
+                    
+                    manager.createLocalUserData();
+                    manager.uploadUserDataToFirebase();
                       Navigator.push(
                         context,
                         MaterialPageRoute(

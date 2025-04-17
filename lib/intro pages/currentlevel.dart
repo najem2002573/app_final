@@ -1,4 +1,6 @@
 import 'package:app/intro%20pages/activities.dart';
+import 'package:app/pages/food.dart';
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 
 class ChooseTrainingLevelScreen extends StatefulWidget {
@@ -9,7 +11,7 @@ class ChooseTrainingLevelScreen extends StatefulWidget {
 
 class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
   String? selectedLevel;
-
+  final manager=BackendManager();
   final List<Map<String, String>> trainingLevels = [
     {'title': 'Beginner', 'subtitle': 'I want to start training'},
     {'title': 'Irregular training', 'subtitle': 'I train 1-2 times a week'},
@@ -117,6 +119,8 @@ class _ChooseTrainingLevelScreenState extends State<ChooseTrainingLevelScreen> {
             GestureDetector(
               onTap: selectedLevel != null
                   ? () {
+                    print("user has choosen the level of : $selectedLevel");
+                    manager.setActivityLevel(selectedLevel.toString());
                       Navigator.push(
                         context,
                         MaterialPageRoute(

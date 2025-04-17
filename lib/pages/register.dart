@@ -1,5 +1,12 @@
+import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
+import 'package:app/services/appUser.dart';
+import 'package:app/services/authUser.dart';
+import 'package:app/services/manager.dart';
+import 'package:app/services/nutrients.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -15,9 +22,10 @@ class _RegisterState extends State<Register> {
   final TextEditingController confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
-
+  
   @override
   Widget build(BuildContext context) {
+    final manager=BackendManager();
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -156,10 +164,35 @@ class _RegisterState extends State<Register> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async{
+                      
+                      
                       if (_formKey.currentState!.validate()) {
                         // Perform registration action
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInScreen()));
+                        //first save this data to the firebase authentication then move to the sign in
+                        //screen to let the user sign in as an already registered user
+
+                        final user = await AuthService().registerUser(
+                                  nameController.text.trim(),
+                                  emailController.text.trim(),
+                                  passwordController.text,
+                                );
+                                
+                                    if (user != null) {
+                                      // Navigate to homepage or show success
+                                      print("register the user for the first time is success!!!");
+                                      print("now the manager will store the user locally: caching");
+                                      final box=Hive.box<Nutrients>("nutrientsBox");
+                                      box.clear();
+                                      await manager.cacheUser(user);
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInScreen()));
+                                    } else {
+                                      // Show error
+
+                                      print("user aint registered error");
+                                    }
+
+                        
                       }
                     },
                     style: ElevatedButton.styleFrom(

@@ -1,9 +1,10 @@
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class Calories extends StatelessWidget {
   Calories({super.key});
-
+  final manager=BackendManager();
   final List<double> activityStats = [7.5, 9.8, 1.2]; // Distance, Steps, Points
   final List<String> activityLabels = ["Distance", "Steps", "Points"];
   final List<String> activityUnits = ["m", "", ""];
