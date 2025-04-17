@@ -16,7 +16,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 //the app <??<>??>
-//17.4.25 updates
+//17.4.25 updates must have no key
 void main() async {
   //manager class instance that is static and manger all across the app
   BackendManager manager=BackendManager();
