@@ -1,3 +1,0 @@
-# Ignore .env and keys.env in the android directory
-.env
-lib/keys.env
