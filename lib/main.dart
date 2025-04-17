@@ -16,11 +16,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 //the app <??<>??>
-//26.3.25
+//17.4.25 updates
 void main() async {
   //manager class instance that is static and manger all across the app
   BackendManager manager=BackendManager();
-   await dotenv.load();
+
+  //load env file
+  //await dotenv.load(fileName: "android/Keys.env");
+
+
   WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
   await Hive.initFlutter();
    // Register adapter (this is auto-generated)

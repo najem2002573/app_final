@@ -35,6 +35,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+.env
+/lib/Keys.env
 
 # Symbolication related
 app.*.symbols

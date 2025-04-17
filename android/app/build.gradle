@@ -8,6 +8,8 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+
+
 android {
     namespace = "com.example.app"
     compileSdk = flutter.compileSdkVersion
@@ -21,11 +23,18 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
     }
+/*
+    def dotenv = new Properties()
+def envFile = rootProject.file("keys.env")
+println("Loading env file from: " + envFile)
+
+dotenv.load(new FileInputStream(rootProject.file("keys.env")))
+*/
+
+
 
     defaultConfig {
-        manifestPlaceholders = [
-    MAPS_API_KEY: dotenv['GPS_KEY']
-                                        ]
+                                  
 
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.app"
@@ -36,10 +45,13 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         minSdkVersion 23
+
+      /*   // ✅ Use the loaded key
+        manifestPlaceholders = [
+            MAPS_API_KEY: dotenv['GPS_KEY']
+        ]*/
     }
 
-    def dotenv = new Properties()
-    dotenv.load(new FileInputStream(rootProject.file(".env")))
 
     buildTypes {
         release {
