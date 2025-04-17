@@ -10,7 +10,8 @@ GeneratedPluginRegistrant.java
 # See https://flutter.dev/to/reference-keystore
 key.properties
 .env
-lib/keys.env
+lib/Keys.env
 
 **/*.keystore
 **/*.jks
+# must not have the key file
