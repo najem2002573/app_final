@@ -14,18 +14,24 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 //the app <??<>??>
 //17.4.25 updates must have no key.  test if env is not there
 void main() async {
+WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
+
+
+
   //manager class instance that is static and manger all across the app
   BackendManager manager=BackendManager();
 
-  //load env file
-  //await dotenv.load(fileName: "android/Keys.env");
+  //store keys securly
 
 
-  WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
+  manager.loadKeys();
+
+
+  
   await Hive.initFlutter();
    // Register adapter (this is auto-generated)
   Hive.registerAdapter(AppUserAdapter());

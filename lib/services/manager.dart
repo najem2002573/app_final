@@ -15,6 +15,8 @@ import 'dart:io';  // For File
 import 'package:image_picker/image_picker.dart';  // For ImagePicker and XFile
 import 'dart:typed_data';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 
 
@@ -28,6 +30,8 @@ final picker = ImagePicker();
 
 class BackendManager
 {
+ 
+
 
   //creating a singelton to make all instances static and access real time  data vars 
   static final BackendManager _instance = BackendManager._internal();
@@ -146,7 +150,24 @@ Future<void> loadTodayNutrients() async {
 //used variables
 
 
+///////////////////////////////////////////  IMAGE DETECTION AND NUTRINETS AI GET PART ////////////////////
 
+ String aiKey="";
+ String GpsKey="";
+
+  
+
+Future<void> loadKeys()async{
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+  String? apiKey1 = await secureStorage.read(key: 'ai_key');
+  String? apiKey2 = await secureStorage.read(key: 'gps_key');
+  
+  this.aiKey=apiKey1.toString();
+  this.GpsKey=apiKey2.toString();
+  print("key1 is in manger: $apiKey2");
+  print("the manager got these keys: $aiKey and gps is $GpsKey");
+  
+}
 
 
 
@@ -218,7 +239,7 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
 
  Future<Map?> getNutrients(String foodItem) async {
   // API key
-  final String apiKey = dotenv.env['AI_API_KEY'].toString(); 
+  final String apiKey = aiKey; 
   final String apiUrl = "https://api.openai.com/v1/chat/completions";
 
   if(foodItem==""){
@@ -344,7 +365,7 @@ if (permission == LocationPermission.denied) {
 
 
 Future<List<Gym>> callPlacesApi(Position position) async{
-  final apiKey = dotenv.env['GPS_KEY'];
+  final apiKey = GpsKey;
 final type = 'gym'; // or 'park'
 final url = Uri.parse(
   'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${position.latitude},${position.longitude}&radius=2000&type=$type&key=$apiKey',
