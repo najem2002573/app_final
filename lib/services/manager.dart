@@ -165,7 +165,7 @@ Future<void> loadKeys()async{
   this.aiKey=apiKey1.toString();
   this.GpsKey=apiKey2.toString();
   print("key1 is in manger: $apiKey2");
-  print("the manager got these keys: $aiKey and gps is $GpsKey");
+  //print("the manager got these keys: $aiKey and gps is $GpsKey");
   
 }
 
@@ -707,7 +707,80 @@ String deleteNutrients(){
 }
 
 
-  
+/*
+var workoutsData = {
+      'keep_fit': [
+        {'name': 'Keep fit', 'duration': 60, 'exercises': ['Bodyweight Squats', 'Push-ups','Plank','Lunges','Jumping Jacks','Mountain Climbers','Superman Hold','	Tricep Dips','Bicycle Crunches','Glute Bridges','Wall Sit','Step-Ups']},
+      ],
+      'lift_for_strength': [
+        {'name': 'Chest Day', 'duration': 50, 'exercises': ['Bench Press', 'Incline Dumbbell Press','Cable Crossover','seated cable fly','Chest Dips','Decline Bench Press','Push-Ups']}
+        {'name': 'Back Day', 'duration': 50, 'exercises': ['Lat Pulldown', 'Pull-Ups (Wide Grip)','Barbell Deadlift','Bent-Over Barbell Row','Seated Cable Row','T-Bar Row','Straight Arm Pulldown']}
+        {'name': 'Leg Day', 'duration': 50, 'exercises': ['Barbell Back Squat', 'Romanian Deadlift','Walking Lunges','seated cable fly','Bulgarian Split Squat','Leg Curl','Standing Calf Raises']}
+        {'name': 'Biceps Day', 'duration': 40, 'exercises': ['Barbell Curl', 'Dumbbell Alternating Curl','Hammer Curl','Preacher Curl','Concentration Curl','Cable Curl (Low Pulley)','Incline Dumbbell Curl']}
+        {'name': 'Triceps  Day', 'duration': 40, 'exercises': ['Close-Grip Bench Press', 'Triceps Dips (Bodyweight or Weighted)','Skull Crushers (Lying Triceps Extensions)','Overhead Dumbbell Triceps Extension','Triceps Pushdown (Cable - Rope or Bar)','Dumbbell Kickbacks','Diamond Push-Ups']}
+        {'name': 'Sholder Day', 'duration': 40, 'exercises': ['Overhead Press', 'Lateral Raises','Front Dumbbell Raises','Rear Delt Fly','Arnold Press','Upright Rows','Face Pulls']}
+        {'name': 'Abs Day', 'duration': 30, 'exercises': ['Hanging Leg Raises', 'Cable Crunches','Russian Twists','Plank','Bicycle Crunches','V-Ups','Mountain Climbers']}
+        {'name': 'Full body Day', 'duration': 90, 'exercises': ['Barbell Squats', 'Walking Lunges','Deadlifts','Bench Press','Overhead Press','Dips','Barbell Curls','Hanging Leg Raises','	Plank']}
+
+      ],
+      'cardio': [
+        {'name': 'cardio day', 'duration': 60, 'exercises': ['Jump Rope', '	High Knees','	Burpees','Mountain Climbers','Jumping Jacks','Skater Hops','Butt Kicks','Stair Running','Sprint Intervals','Rowing Machine','Jump Squats','	Shadow Boxing']}
+      ]
+    };
+
+*/
+
+// local user data variable , uplaoded when the app runs first time so manager parameters are loaded
+Future<void> loadUserData(String userId) async {
+  print("now loading all user data, if it's not hived then load it from Firebase via the uid");
+
+  final userBox = Hive.box<Userdata>('userData');
+  final data = userBox.get(userId);
+
+  if (data != null) {
+    // 🔹 Load from Hive
+    print("Loaded from Hive");
+    this.HEIGHT = data.height;
+    this.WEIGHT  = data.weight;
+    this.goal  = data.goal;
+    this.age  = data.age;
+    this.gender = data.gender;
+    this.activity_level = data.activityLevel; 
+    print("Loaded from Hive: $age, $goal, $activity_level");
+  } else {
+    // 🔸 Load from Firebase
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      if (doc.exists) {
+        final firebaseData = doc.data();
+        if (firebaseData != null) {
+          final dat = Userdata(
+            uid: firebaseData['uid'] ?? "",
+            age: firebaseData['age'] ?? 0,
+            goal: firebaseData['goal'] ?? "",
+            gender: firebaseData['gender'] ?? "",
+            height: firebaseData['height'] ?? 0.0,
+            weight: firebaseData['weight'] ?? 0.0,
+            activityLevel: firebaseData['activity_level'] ?? "",
+          );
+          await userBox.put(userId, dat); // ✅ save with same key
+
+          this.HEIGHT = dat.height;
+          this.WEIGHT = dat.weight;
+          this.goal = dat.goal;
+          this.age = dat.age;
+          this.gender = dat.gender;
+          this.activity_level = dat.activityLevel;
+
+          print("Loaded from Firebase and saved to Hive: $age, $goal, $activity_level");
+        }
+      }
+    } catch (e) {
+      print("❌ Error loading user data: $e");
+    }
+  }
+}
+
 
 
 

@@ -17,7 +17,6 @@ void main() async {
 WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
 
 
-
   //manager class instance that is static and manger all across the app
   BackendManager manager=BackendManager();
 
@@ -53,9 +52,11 @@ WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes prope
    
   }); // Initialize Firebase
 
+
+
  final user = FirebaseAuth.instance.currentUser;
  String uid=user?.uid ?? "";
-
+manager.loadUserData(uid);
 print("in the main for the current instance of user the uid is : $uid");
 manager.setUid(uid);
  //check the userData (weight, height... ) locally and load them from the firebase if needed

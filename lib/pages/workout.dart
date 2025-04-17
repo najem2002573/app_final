@@ -1,3 +1,4 @@
+import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -9,10 +10,32 @@ class FitnessDashboardScreen extends StatefulWidget {
 }
 
 class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
+  BackendManager manager=BackendManager();
   int _selectedIndex = 0;
-  String selectedCategory = "Lift for\nStrength";
+  //String selectedCategory = "Lift for\nStrength";
+  String selectedCategory = "";
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+
+
+ @override
+void initState() {
+  super.initState();
+
+if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
+    selectedCategory = 'Lift for Strength';
+  } else if (manager.goal == "Keep fit") {
+    selectedCategory = "keep fit";
+  } else {
+    selectedCategory = "Cardio";
+  }
+
+  print("🔁 Initial category based on goal: $selectedCategory");
+
+
+
+}
+  
 
   final List<Map<String, dynamic>> workoutList = [
     {
@@ -213,7 +236,9 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
   }
 
   Widget _buildCategoryItem(String title, IconData icon) {
+   
     bool isSelected = selectedCategory == title;
+    
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -248,6 +273,8 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
       ),
     );
   }
+
+
 
   Widget _buildDailyPlanCard() {
     return Container(
