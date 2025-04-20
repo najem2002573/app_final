@@ -1,4 +1,5 @@
 
+import 'package:app/pages/Reminderpage.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
 import 'package:app/services/appUser.dart';
@@ -10,9 +11,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:workmanager/workmanager.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
 
 //the app <??<>??>
 //17.4.25 updates must have no key.  test if env is not there
+
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+
+
 void main() async {
 WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes properly
 
@@ -73,8 +84,33 @@ manager.setUid(uid);
   final box = Hive.box<AppUser>('userBox');
   final currentUser = box.get('currentUser');
   
-  
 
+
+// for notification reminder page /////////////////////////////
+
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) {
+    print("Reminder triggered!");
+    return Future.value(true);
+  });
+}
+
+  // Initialize WorkManager
+  Workmanager().initialize(
+    callbackDispatcher, // Top-level callback function
+    isInDebugMode: true, // Set to false in production
+  );
+
+  // Notification plugin initialization
+  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initSettings = InitializationSettings(android: androidInit);
+
+  flutterLocalNotificationsPlugin.initialize(initSettings);
+
+
+
+////////////////////////////////////// ???????????????????????????????????????????
+///
 
 
 // most important: change to this line in firestore rules: allow read, write: if request.auth != null;
@@ -84,6 +120,7 @@ manager.setUid(uid);
     isSignedIn: currentUser?.isSignedIn ?? false,
   )); // Start your app
 }
+
 
 class MyApp extends StatefulWidget {
   final bool isSignedIn;
@@ -145,9 +182,14 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: ReminderPage(),
     );
   }
+
+  
+
+
+  
 }
 
 

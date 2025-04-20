@@ -1,27 +1,141 @@
+import 'package:app/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hive/hive.dart';
+import 'package:workmanager/workmanager.dart';
 
 class ReminderPage extends StatefulWidget {
   @override
   _ReminderPageState createState() => _ReminderPageState();
 }
 
+  /// Callback function for scheduled reminders
+void callbackDispatcher() {
+  Workmanager().executeTask((task, inputData) async {
+    // Ensure the background isolate is properly initialized.
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Create a new instance of FlutterLocalNotificationsPlugin in this isolate.
+    final FlutterLocalNotificationsPlugin localNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    // Initialize notifications.
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    await localNotificationsPlugin.initialize(initializationSettings);
+
+    // Explicitly create the notification channel.
+    final androidImpl = localNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidImpl?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'reminder_channel', // Channel ID.
+        'Reminder Notifications', // Channel Name.
+        description: 'Channel for reminder notifications', // Channel description.
+        importance: Importance.max,
+      ),
+    );
+
+    // Define the notification details.
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'reminder_channel', // Channel ID.
+      'Reminder Notifications', // Channel name.
+      channelDescription: 'Channel for reminder notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    // Show the notification.
+    await localNotificationsPlugin.show(
+      0, // Notification ID.
+      'Reminder',
+      'This is your scheduled reminder!',
+      platformChannelSpecifics,
+    );
+
+    print("Reminder triggered at ${DateTime.now()}!");
+    return Future.value(true);
+  });
+}
+
+
 class _ReminderPageState extends State<ReminderPage> {
   TimeOfDay selectedTime = TimeOfDay(hour: 20, minute: 0);
   String selectedRepeat = "Everyday";
+  late Box remindersBox;
 
   final List<String> repeatOptions = [
-    "Everyday",
-    "Mon - Fri",
-    "Weekends",
-    "Mon",
-    "Tue",
-    "Wed",
-    "Thu",
-    "Fri",
-    "Sat",
-    "Sun"
+    "Everyday", "Mon - Fri", "Weekends", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initStorage();
+    _initWorkManager();
+  }
+
+  /// Initialize Hive for local storage
+ Future<void> _initStorage() async {
+  remindersBox = await Hive.openBox('remindersBox');
+  setState(() {
+    selectedTime = TimeOfDay(
+      hour: remindersBox.get('hour', defaultValue: 20),
+      minute: remindersBox.get('minute', defaultValue: 0),
+    );
+    selectedRepeat = remindersBox.get('repeat', defaultValue: "Everyday");
+  });
+}
+
+  /// Initialize WorkManager for background notifications
+  void _initWorkManager() {
+    Workmanager().initialize(
+      callbackDispatcher,
+      isInDebugMode: true,
+    );
+  }
+
+
+
+
+  /// Schedule a reminder using WorkManager
+  void _scheduleReminder() {
+    final now = DateTime.now();
+    var scheduledTime = DateTime(
+      now.year, now.month, now.day, selectedTime.hour, selectedTime.minute,
+    );
+
+    if (scheduledTime.isBefore(now)) {
+  // Move to the next day if time has already passed
+  scheduledTime = scheduledTime.add(Duration(days: 1));
+}
+
+Workmanager().registerOneOffTask(
+  "reminder_task",
+  "Show Reminder",
+  initialDelay: scheduledTime.difference(now),
+);
+
+
+   void scheduleReminder() {
+  final now = DateTime.now();
+  final scheduledTime = DateTime(now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
+
+  Workmanager().registerOneOffTask(
+    "reminder_task",
+    "Show Reminder",
+    initialDelay: scheduledTime.difference(now),
+  );
+   }}
+
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +145,7 @@ class _ReminderPageState extends State<ReminderPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: BackButton(color: Colors.deepPurple),
-        title: Text(
-          "Reminder",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
+        title: Text("Reminder", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 24)),
       ),
       body: Column(
         children: [
@@ -49,28 +156,20 @@ class _ReminderPageState extends State<ReminderPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-                  Text(
-                    "Please select reminder time",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                  ),
+                  Text("Please select reminder time", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 20),
-
-                  // Enlarged Time Picker
+                  
+                  // Time Picker
                   SizedBox(
                     height: 260,
                     child: CupertinoTheme(
                       data: CupertinoThemeData(
                         textTheme: CupertinoTextThemeData(
-                          dateTimePickerTextStyle: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
+                          dateTimePickerTextStyle: TextStyle(fontSize: 26, fontWeight: FontWeight.w500, color: Colors.black),
                         ),
                       ),
                       child: CupertinoDatePicker(
-                        initialDateTime: DateTime(
-                            2024, 1, 1, selectedTime.hour, selectedTime.minute),
+                        initialDateTime: DateTime(2024, 1, 1, selectedTime.hour, selectedTime.minute),
                         mode: CupertinoDatePickerMode.time,
                         use24hFormat: true,
                         onDateTimeChanged: (DateTime newTime) {
@@ -81,14 +180,11 @@ class _ReminderPageState extends State<ReminderPage> {
                       ),
                     ),
                   ),
-
+                  
                   const SizedBox(height: 30),
-                  Text(
-                    "How often repeat",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                  ),
+                  Text("How often repeat", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 18),
-
+                  
                   Wrap(
                     spacing: 12,
                     runSpacing: 16,
@@ -101,21 +197,14 @@ class _ReminderPageState extends State<ReminderPage> {
                           });
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 14),
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? Colors.deepPurple
-                                : Colors.grey.shade200,
+                            color: isSelected ? Colors.deepPurple : Colors.grey.shade200,
                             borderRadius: BorderRadius.circular(32),
                           ),
                           child: Text(
                             option,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: isSelected ? Colors.white : Colors.black54,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontSize: 16, color: isSelected ? Colors.white : Colors.black54, fontWeight: FontWeight.w600),
                           ),
                         ),
                       );
@@ -126,33 +215,37 @@ class _ReminderPageState extends State<ReminderPage> {
             ),
           ),
 
-          // Bigger Save Button
+          // Save Button
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             child: SizedBox(
               width: double.infinity,
               height: 60,
               child: ElevatedButton(
-                onPressed: () {
-                  // Save logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Reminder saved")),
-                  );
-                },
+                    onPressed: () async {
+                          if (remindersBox.isOpen) {
+                            remindersBox.put('hour', selectedTime.hour);
+                            remindersBox.put('minute', selectedTime.minute);
+                            remindersBox.put('repeat', selectedRepeat);
+
+                            _scheduleReminder();
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Reminder saved")),
+                            );
+                          } else {
+                            // Show an error if the box isn't initialized
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Storage is not ready. Please try again.")),
+                            );
+                          }
+                        },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(35),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                 ),
-                child: Text(
-                  "Save",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: Text("Save", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ),

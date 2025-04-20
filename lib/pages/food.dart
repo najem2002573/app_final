@@ -313,56 +313,58 @@ void setTodayNutrients(Nutrients todays){
 
   Widget _buildAnimatedMacroTile(
       String title, String value, Color color, IconData icon,double val) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: 0.6),
-      duration: Duration(milliseconds: 1000),
-      builder: (context, progress, child) {
-        return Container(
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.1),
-                blurRadius: 6,
-                offset: Offset(0, 3),
-              )
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: CircularProgressIndicator(
-                      value: val,
-                      strokeWidth: 4,
-                      backgroundColor: color.withOpacity(0.1),
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
+    return SingleChildScrollView(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: 0.6),
+        duration: Duration(milliseconds: 1000),
+        builder: (context, progress, child) {
+          return Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: Offset(0, 3),
+                )
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        value: val,
+                        strokeWidth: 4,
+                        backgroundColor: color.withOpacity(0.1),
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                      ),
                     ),
-                  ),
-                  Icon(icon, color: color, size: 20),
-                ],
-              ),
-              SizedBox(height: 8),
-              Text(
-                value,
-                style: TextStyle(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                    Icon(icon, color: color, size: 20),
+                  ],
                 ),
-              ),
-              Text(title, style: TextStyle(color: Colors.grey.shade600)),
-            ],
-          ),
-        );
-      },
+                SizedBox(height: 8),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(title, style: TextStyle(color: Colors.grey.shade600)),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 

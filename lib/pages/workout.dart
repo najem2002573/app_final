@@ -21,7 +21,7 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
  @override
 void initState() {
   super.initState();
-
+/*
 if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
     selectedCategory = 'Lift for Strength';
   } else if (manager.goal == "Keep fit") {
@@ -29,7 +29,7 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
   } else {
     selectedCategory = "Cardio";
   }
-
+*/
   print("🔁 Initial category based on goal: $selectedCategory");
 
 

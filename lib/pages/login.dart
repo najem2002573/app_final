@@ -27,108 +27,110 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(height: 50),
-
-                // App Logo
-                Center(
-                  child: Image.asset(
-                    'lib/images/wellness.jpg', // Replace with your logo
-                    height: 100,
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                // Welcome Text
-                Text(
-                  "Welcome Back!",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.teal,
-                  ),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  "Login to continue your wellness journey.",
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                SizedBox(height: 30),
-
-                // Email Input
-                _buildTextField("Phone / Email", emailController, false, Icons.email),
-                SizedBox(height: 20),
-
-                // Password Input
-                _buildTextField("Password", passwordController, true, Icons.lock),
-                SizedBox(height: 10),
-
-                // Forgot Password Button
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      // Navigate to Forgot Password Page
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ResetPassword()));
-                    },
-                    child: Text(
-                      "Forgot Password?",
-                      style: TextStyle(color: Colors.teal, fontSize: 14),
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: 50),
+        
+                  // App Logo
+                  Center(
+                    child: Image.asset(
+                      'lib/images/wellness.jpg', // Replace with your logo
+                      height: 100,
                     ),
                   ),
-                ),
-                SizedBox(height: 20),
-
-                // Login Button
-                _buildLoginButton(),
-                SizedBox(height: 20),
-
-                // "Sign in with" Text
-                Text(
-                  "Sign in with",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                SizedBox(height: 15),
-
-                // Social Login Buttons
-                _buildSocialIcons(),
-                SizedBox(height: 20),
-
-                // Sign Up Prompt
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have an account?",
-                      style: TextStyle(fontSize: 14, color: Colors.black),
+                  SizedBox(height: 20),
+        
+                  // Welcome Text
+                  Text(
+                    "Welcome Back!",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
                     ),
-                    TextButton(
+                  ),
+                  SizedBox(height: 5),
+                  Text(
+                    "Login to continue your wellness journey.",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  SizedBox(height: 30),
+        
+                  // Email Input
+                  _buildTextField("Phone / Email", emailController, false, Icons.email),
+                  SizedBox(height: 20),
+        
+                  // Password Input
+                  _buildTextField("Password", passwordController, true, Icons.lock),
+                  SizedBox(height: 10),
+        
+                  // Forgot Password Button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
                       onPressed: () {
-                        // Navigate to Sign Up Page
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register()));
+                        // Navigate to Forgot Password Page
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>ResetPassword()));
                       },
                       child: Text(
-                        "Sign Up",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.teal,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        "Forgot Password?",
+                        style: TextStyle(color: Colors.teal, fontSize: 14),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  SizedBox(height: 20),
+        
+                  // Login Button
+                  _buildLoginButton(),
+                  SizedBox(height: 20),
+        
+                  // "Sign in with" Text
+                  Text(
+                    "Sign in with",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  SizedBox(height: 15),
+        
+                  // Social Login Buttons
+                  _buildSocialIcons(),
+                  SizedBox(height: 20),
+        
+                  // Sign Up Prompt
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account?",
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Navigate to Sign Up Page
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context)=>Register()));
+                        },
+                        child: Text(
+                          "Sign Up",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.teal,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -42,9 +42,8 @@ class _HomePageState extends State<HomePage> {
   
   final List<Widget> _pages = [
     HomePageContent(),
-    Calories(),
-    SettingsPage(),
     Gymspage(),
+    SettingsPage(),
   ];
 
   @override
