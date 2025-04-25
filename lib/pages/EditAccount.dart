@@ -1,17 +1,92 @@
+import 'dart:io';
+
+import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
+class EditAccountPage extends StatefulWidget {
+  @override
+  State<EditAccountPage> createState() => _EditAccountPageState();
+}
 
-class EditAccountPage extends StatelessWidget {
+
+final picker = ImagePicker();//for changing the user image purpose
+
+
+class _EditAccountPageState extends State<EditAccountPage> {
   final manager=BackendManager();
-  final String profileImage =
-      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg";
+  String imagepath="";
+  String uname="";
+  String email="";
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  AppUser Xuser=AppUser(uid: "", username: "", email: '');
+
+  Future<XFile?> pickImage() async{
+    
+    XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery); // Or use .camera for camera
+    print(pickedFile?.path);
+
+    if(pickedFile!=null){
+      setState(() {
+            this.imagepath=pickedFile.path;
+          });
+      Box profileImage=Hive.box('profileimageBox');
+      profileImage.put("profileimage", this.imagepath);
+      print("the onclick path is $imagepath");
+      manager.setProfiePath(imagepath);
+    }
+    return pickedFile;
+  }
+
+  Future<String> loadProfileImage() async{
+  Box profileImage=Hive.box('profileimageBox');
+  String? imagepath=profileImage.get('profileimage');
+  if(imagepath==null)
+    return "";
+  setState(() {
+    this.imagepath=imagepath;
+  });
+  return imagepath;
+  
+  }
+
+  @override
+  initState() {
+    // TODO: implement initState
+    super.initState();
+    openBox(); // for loading image path
+    loadProfileImage();
+    Box userbox=Hive.box<AppUser>('userBox');
+    AppUser user=userbox.get('currentUser');
+    this.Xuser=user;
+    this.uname=user.username;
+    this.email=user.email;
+    
+    nameController.text=uname;
+    emailController.text=email;
+
+    
+
+  }
+
+
+
+  Future<void> openBox() async{
+    await Hive.openBox("profileimageBox");
+  }
+  
+
 
   @override
   Widget build(BuildContext context) {
+    
+    
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        leading: BackButton(color: Colors.black),
+        leading: BackButton(color: Colors.black,onPressed: (){Navigator.pop(context);},),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -37,27 +112,30 @@ class EditAccountPage extends StatelessWidget {
                         backgroundColor: Colors.deepPurple.shade100,
                         child: CircleAvatar(
                           radius: 70,
-                          backgroundImage: NetworkImage(profileImage),
+                          backgroundImage: imagepath!="" ? FileImage(File(imagepath)) : null,
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  Text(
-                    "Edit photo",
-                    style: TextStyle(
-                        color: Colors.deepPurple,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
+                  ElevatedButton(
+                    onPressed: pickImage,
+                    child: Text(
+                      "Edit photo",
+                      style: TextStyle(
+                          color: Colors.deepPurple,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18),
+                    ),
                   ),
                   const SizedBox(height: 40),
 
                   // Full Name Field
-                  _buildInputField("Full name", "Jane Kolinz"),
+                  _buildInputFieldname("Full name", "$uname"),
                   const SizedBox(height: 30),
 
                   // Email Field
-                  _buildInputField("Email", "janekolinz@gmail.com"),
+                  _buildInputFieldemail("Email", "$email"),
                   const SizedBox(height: 30),
 
                   // Change password
@@ -91,6 +169,21 @@ class EditAccountPage extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   // TODO: Save logic
+                  this.uname=nameController.text;
+                  this.email=emailController.text;
+
+                  this.Xuser.username=uname;
+                  this.Xuser.email=email;
+                  manager.cacheUser(Xuser);
+
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Name changed successfully!"),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.green,
+                  ),
+                );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
@@ -110,7 +203,7 @@ class EditAccountPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInputField(String label, String initialValue) {
+  Widget _buildInputFieldname(String label, String initialValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -124,7 +217,7 @@ class EditAccountPage extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         TextField(
-          controller: TextEditingController(text: initialValue),
+          controller: nameController,
           style: TextStyle(fontSize: 18),
           decoration: InputDecoration(
             filled: true,
@@ -140,4 +233,44 @@ class EditAccountPage extends StatelessWidget {
       ],
     );
   }
+
+
+  
+  Widget _buildInputFieldemail(String label, String initialValue) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 10),
+        TextField(
+          controller: emailController,
+          style: TextStyle(fontSize: 18),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey.shade100,
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(18),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  bool isValidEmail(String email) {
+  final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
+  return emailRegex.hasMatch(email);
+}
+
 }

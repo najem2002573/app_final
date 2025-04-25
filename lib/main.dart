@@ -1,4 +1,5 @@
 
+import 'package:app/pages/EditAccount.dart';
 import 'package:app/pages/Reminderpage.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
@@ -44,9 +45,8 @@ WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes prope
   await Hive.openBox<AppUser>('userBox');
   await Hive.openBox<Nutrients>('nutrientsBox');
   await Hive.openBox<Userdata>('userData');
- 
+  await Hive.openBox('profileimageBox');
  //the instance of the firebase user object
-
   
   // Load saved nutrients, in this function in the manager we check the local data and if its not there 
   //we load it from the fireabse 
@@ -145,6 +145,7 @@ class _MyAppState extends State<MyApp> {
       final box = Hive.box<AppUser>('userBox');
       AppUser? localUser = box.get('currentUser');
 
+      String uname=""; // the user name will be loaded
       if (localUser == null) {
         final user = FirebaseAuth.instance.currentUser;
         if (user != null) {
@@ -162,6 +163,8 @@ class _MyAppState extends State<MyApp> {
             );
             print('app user name in the main function that is loaded locally and by firebase is:  ${appUser.username} and from the local is ${localUser?.username}');
             box.put('currentUser', appUser);
+            uname=appUser.username;
+            manager.setUname(uname);
             _startScreen =  HomePage();
           } else {
             // If Firebase user exists but no document found
@@ -169,6 +172,8 @@ class _MyAppState extends State<MyApp> {
           }
         }
       } else {
+         uname=localUser.username;
+         manager.setUname(uname);
         _startScreen =  HomePage(); // user is signed in and local data exists
       }
     } else {
@@ -182,7 +187,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ReminderPage(),
+      home: HomePage(),
     );
   }
 

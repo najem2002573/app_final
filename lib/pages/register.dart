@@ -186,6 +186,7 @@ class _RegisterState extends State<Register> {
                                         final box=Hive.box<Nutrients>("nutrientsBox");
                                         box.clear();
                                         await manager.cacheUser(user);
+                                        
                                         Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInScreen()));
                                       } else {
                                         // Show error

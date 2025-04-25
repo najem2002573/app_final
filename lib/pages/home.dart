@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:app/pages/gymspage.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
@@ -25,6 +27,8 @@ final manager=BackendManager();
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -123,7 +127,17 @@ class HomePageContent extends StatefulWidget {
 
 class _HomePageContentState extends State<HomePageContent> {
   final List<double> weeklyStats = [3, 4, 2, 5, 8, 5, 3];
+  String profileImagePAth="";
 
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Box profileImage=Hive.box('profileimageBox');
+    this.profileImagePAth=profileImage.get('profileimage');
+
+  }
   @override
   Widget build(BuildContext context) {
     BackendManager manager=BackendManager();
@@ -134,57 +148,55 @@ class _HomePageContentState extends State<HomePageContent> {
        final userName = user?.username ?? 'Guest';
        print('the new username from the login is ${userName}');
     
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+   return Scaffold(
+  body: SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, // added for alignment
                   children: [
-                    Column(
-                      children: [
-                        const Text(
-                          "EVERYDAY WE'RE MUSCLEN",
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                        //const SizedBox(height: 4),
-                        Text(
-                          
-                          "  Hello, ${userName} 👋",
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                    const Text(
+                      "EVERYDAY WE'RE MUSCLEN",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    CircleAvatar(
-                        radius: 32,
-                        backgroundColor: Colors.pink.shade50,
-                        child: CircleAvatar(
-                          radius: 40,
-                          backgroundImage: NetworkImage(
-                            "https://st3.depositphotos.com/3431221/13621/v/450/depositphotos_136216036-stock-illustration-man-avatar-icon-hipster-character.jpg", // Replace later
-                          ),
-                        ),
-                      ),
+                    // const SizedBox(height: 4),
+                    Text(
+                      "  Hello, ${userName} 👋",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                _buildMyPlanSection(context),
-                const SizedBox(height: 20),
-                buildSuccessProbabilityCard(),
-                const SizedBox(height: 20),
-                _buildWeeklyStats(),
-                const SizedBox(height: 20),
-                _buildMotivationalMusic(),
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Colors.pink.shade50,
+                  child: CircleAvatar(
+                    radius: 28, // adjusted to fit inside properly
+                    backgroundImage: FileImage(File(profileImagePAth)), // Replace later
+                  ),
+                ),
               ],
             ),
-          ),
+            const SizedBox(height: 20),
+            _buildMyPlanSection(context),
+            const SizedBox(height: 20),
+            buildSuccessProbabilityCard(),
+            const SizedBox(height: 20),
+            _buildWeeklyStats(),
+            const SizedBox(height: 20),
+            _buildMotivationalMusic(),
+          ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 
   Widget _buildMyPlanSection(BuildContext context) {

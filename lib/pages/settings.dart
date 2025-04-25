@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:app/pages/EditAccount.dart';
 import 'package:app/pages/Reminderpage.dart';
 import 'package:app/pages/calender.dart';
+import 'package:app/pages/food.dart';
 import 'package:app/pages/login.dart';
 import 'package:app/services/appUser.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,14 +18,32 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  
-  String userName = "Jane Kolinz";
-  String userImageUrl =
-      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg";
+  Box user=Hive.box<AppUser>('userBox');
+  AppUser xuser=AppUser(uid: "", username: "", email: "");
+ // String userName = manager.getUname();
+  Box box=Hive.box('profileimageBox');
+  String userImagePath="";
+  String uname="";
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    if(box.get('profileimage')!=null) {
+      this.userImagePath =box.get('profileimage');
+    }
+    else
+      {this.userImagePath="";}
+
+    this.xuser=user.get('currentUser');
+    this.uname=xuser.username;
+  }
+     
 
   @override
   Widget build(BuildContext context) {
-    
+    this.userImagePath =box.get('profileimage');
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: SafeArea(
@@ -36,7 +57,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: NetworkImage(userImageUrl),
+                    backgroundImage: FileImage(File(userImagePath)),
                   ),
                   GestureDetector(
                     onTap: () {
@@ -57,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 14),
               Text(
-                userName,
+                uname,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,

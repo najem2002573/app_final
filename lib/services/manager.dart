@@ -31,7 +31,26 @@ final picker = ImagePicker();
 class BackendManager
 {
  
+  String profile_image_path="";
 
+  void setProfiePath(String path){
+    this . profile_image_path=path;
+  }
+
+
+  String getProfileImagePath(){
+    return this.profile_image_path;
+  }
+
+  String username="";
+
+  void setUname(String name){
+    this.username=name;
+  }
+
+  String getUname(){
+    return this . username;
+  }
 
   //creating a singelton to make all instances static and access real time  data vars 
   static final BackendManager _instance = BackendManager._internal();
@@ -517,12 +536,20 @@ Future<void> cacheUser(AppUser user) async{
   final box=Hive.box<AppUser>('userBox');
   
   await box.put('currentUser', user);
+  await updateUserInDatabase(user);/// so always when changing any user data we update it in DB
   final retrieve=await box.get('currentUser');
   if (retrieve!=null)
   print("done storing the registered user locally, his name is ${retrieve.username} and his email is ${retrieve.email}");
  
 }
 
+// update user data such as gmail and name on the database
+Future<void> updateUserInDatabase(AppUser user) async {
+  await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+    'name': user.username,
+    'gmail': user.email,
+  });
+}
 
 
 ////////////////////////////////////////////  USER DATA AS HEIGHT WEIGHT ............//////////////////////
@@ -596,6 +623,7 @@ void createLocalUserData() {
 
   box.put('userdata', data);
 }
+
 
 
 
