@@ -74,6 +74,7 @@ manager.setUid(uid);
  Box userdata=Hive.box<Userdata>("userData");
  if(userdata.get('userdata')==null){
   if(uid!="") {
+    manager.setUid(uid);
     print('the uid in the very main is : $uid');
     await manager.initializeUserData(uid, userdata);
   }

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,11 +20,11 @@ class _EditAccountPageState extends State<EditAccountPage> {
   final manager=BackendManager();
   String imagepath="";
   String uname="";
-  String email="";
+ 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   AppUser Xuser=AppUser(uid: "", username: "", email: '');
-
+ 
   Future<XFile?> pickImage() async{
     
     XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery); // Or use .camera for camera
@@ -60,12 +62,16 @@ class _EditAccountPageState extends State<EditAccountPage> {
     loadProfileImage();
     Box userbox=Hive.box<AppUser>('userBox');
     AppUser user=userbox.get('currentUser');
+
+    Xuser.uid=manager.getUid();
+   
+    
+
     this.Xuser=user;
-    this.uname=user.username;
-    this.email=user.email;
+    print("the xuser values are : mail is ${this.Xuser.email} and its uname is : ${this.Xuser.username}");
     
     nameController.text=uname;
-    emailController.text=email;
+    
 
     
 
@@ -81,7 +87,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
 
   @override
   Widget build(BuildContext context) {
-    
+    this.Xuser.uid=manager.uid;
     
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -131,11 +137,11 @@ class _EditAccountPageState extends State<EditAccountPage> {
                   const SizedBox(height: 40),
 
                   // Full Name Field
-                  _buildInputFieldname("Full name", "$uname"),
+                  _buildInputFieldname("Full name", uname),
                   const SizedBox(height: 30),
 
                   // Email Field
-                  _buildInputFieldemail("Email", "$email"),
+                  
                   const SizedBox(height: 30),
 
                   // Change password
@@ -144,6 +150,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
                     child: TextButton(
                       onPressed: () {
                         // TODO: Change password
+                        _showChangePasswordDialog(context);
                       },
                       child: Text(
                         "Change password",
@@ -170,13 +177,13 @@ class _EditAccountPageState extends State<EditAccountPage> {
                 onPressed: () {
                   // TODO: Save logic
                   this.uname=nameController.text;
-                  this.email=emailController.text;
-
                   this.Xuser.username=uname;
-                  this.Xuser.email=email;
+
+                  print("the xuser that will be cached and uploaded to DB is ${Xuser.username}");
+                  print("the xuser id is : ${Xuser.uid}");
                   manager.cacheUser(Xuser);
 
-                  
+                  FocusScope.of(context).unfocus();
                   ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text("Name changed successfully!"),
@@ -204,6 +211,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
   }
 
   Widget _buildInputFieldname(String label, String initialValue) {
+    nameController.text=this.Xuser.username;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -235,42 +243,106 @@ class _EditAccountPageState extends State<EditAccountPage> {
   }
 
 
+  final TextEditingController newPasswordController=TextEditingController();
   
-  Widget _buildInputFieldemail(String label, String initialValue) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: emailController,
-          style: TextStyle(fontSize: 18),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey.shade100,
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-              borderSide: BorderSide.none,
+  final TextEditingController oldPasswordController=TextEditingController();
+
+  
+  void _showChangePasswordDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Change Password"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              obscureText: true,
+              decoration: InputDecoration(labelText: "Old Password"),
+              controller: oldPasswordController,
             ),
-          ),
+            TextField(
+              obscureText: true,
+              decoration: InputDecoration(labelText: "New Password"),
+              controller: newPasswordController,
+            ),
+          ],
         ),
-      ],
-    );
-  }
-
-
-  bool isValidEmail(String email) {
-  final emailRegex = RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$');
-  return emailRegex.hasMatch(email);
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              // Validate and update password logic here
+              print("the user.mail is (before changing password) ${this.Xuser.email}");
+              _changePassword(Xuser.email,oldPasswordController.text, newPasswordController.text);
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: Text("Submit"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog without action
+            },
+            child: Text("Cancel"),
+          ),
+        ],
+      );
+    },
+  );
 }
 
+
+
+
+Future<void> _changePassword(String email, String oldPassword, String newPassword) async {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      print("No user is signed in.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("No authenticated user."),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Step 1: Reauthenticate the user with the old password
+   final user1 = FirebaseAuth.instance.currentUser;
+if (user1 != null) {
+  final credential = EmailAuthProvider.credential(
+    email: user.email!,
+    password: oldPassword,
+  );
+  await user.reauthenticateWithCredential(credential);
+  print("Reauthentication successful!");
+} else {
+  print("No user is currently signed in.");
+}
+
+    // Step 2: Update the password
+    await user.updatePassword(newPassword);
+    print("Password successfully updated!");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Password changed successfully!"),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+  } catch (error) {
+    print("Error updating password: $error");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Failed to change password. Please try again."),
+        duration: Duration(seconds: 2),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
 }

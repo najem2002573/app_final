@@ -534,7 +534,7 @@ Future<void> cacheUser(AppUser user) async{
   //the check if the user is null or not is in the register page when we asked if the user
   //is not null ! then save it inside the manager
   final box=Hive.box<AppUser>('userBox');
-  
+  print("will cache the user , its id : ${this.uid}");
   await box.put('currentUser', user);
   await updateUserInDatabase(user);/// so always when changing any user data we update it in DB
   final retrieve=await box.get('currentUser');
@@ -545,9 +545,11 @@ Future<void> cacheUser(AppUser user) async{
 
 // update user data such as gmail and name on the database
 Future<void> updateUserInDatabase(AppUser user) async {
+
+
+  print("for uploading new user name the uid is : ${this.uid}");
   await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-    'name': user.username,
-    'gmail': user.email,
+    'username': user.username,
   });
 }
 
@@ -560,10 +562,14 @@ Future<void> updateUserInDatabase(AppUser user) async {
 int age=0; String goal=""; String gender=""; double HEIGHT=0; double WEIGHT=0;String activity_level="";
 String uid="";
 
+String getUid(){
+  return uid;
+}
 
 void setUid(String uid){
   this.uid=uid;
-  Box box=Hive.box<AppUser>('userBox');
+  print("this.uid is ${this.uid}}");
+  //Box box=Hive.box<AppUser>('userBox');
   //this.uid=box.get('currentUser').uid;
   //print("the uid is setted in the manager is $uid");
 }
