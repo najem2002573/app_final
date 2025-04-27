@@ -6,6 +6,7 @@ import 'package:app/services/nutrients.dart';
 import 'package:app/services/userDATA.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -177,15 +178,17 @@ Future<void> loadTodayNutrients() async {
   
 
 Future<void> loadKeys()async{
-  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  String? apiKey1 = await secureStorage.read(key: 'ai_key');
-  String? apiKey2 = await secureStorage.read(key: 'gps_key');
+  final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
+
+  String googleApiKey = _remoteConfig.getString('google_api');
+  String openAiKey =_remoteConfig.getString('open_AI');
+
+  this.aiKey=openAiKey;
+  this.GpsKey=googleApiKey;
+    print("Google API Key: $googleApiKey");
+    print("OpenAI Key: $openAiKey");
   
-  this.aiKey=apiKey1.toString();
-  this.GpsKey=apiKey2.toString();
-  print("key1 is in manger: $apiKey2");
-  //print("the manager got these keys: $aiKey and gps is $GpsKey");
-  
+
 }
 
 

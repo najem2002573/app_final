@@ -1,6 +1,4 @@
 
-import 'package:app/pages/EditAccount.dart';
-import 'package:app/pages/Reminderpage.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
 import 'package:app/services/appUser.dart';
@@ -14,6 +12,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
+
 
 
 
@@ -22,6 +22,17 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+Future<void> initializeRemoteConfig() async {
+  final remoteConfig = FirebaseRemoteConfig.instance;
+  await remoteConfig.setDefaults({
+  'google_api': 'default_google_key',
+  'open_AI': 'default_openai_key',
+});
+
+  await remoteConfig.fetchAndActivate();
+  print("Remote Config initialized successfully!");
+}
 
 
 
@@ -32,8 +43,10 @@ WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes prope
   //manager class instance that is static and manger all across the app
   BackendManager manager=BackendManager();
 
-  //store keys securly and load them to use the api's (google places gps and open ai food nutrients)
-  manager.loadKeys();
+  
+
+
+  
 
   await Hive.initFlutter();
    // Register adapter (this is auto-generated)
@@ -63,7 +76,10 @@ WidgetsFlutterBinding.ensureInitialized(); // Ensures Firebase initializes prope
    
   }); // Initialize Firebase
 
+await initializeRemoteConfig(); // init the remote the stores api keys
 
+// load the api keys
+manager.loadKeys();
 
  final user = FirebaseAuth.instance.currentUser;
  String uid=user?.uid ?? "";
@@ -82,8 +98,34 @@ manager.setUid(uid);
 //to make the app remeber the user (if signed in he wont face the sign in page again)
 //by checking the isSigned attribute of the user which is saved in the hive
 
-  final box = Hive.box<AppUser>('userBox');
-  final currentUser = box.get('currentUser');
+  final boxUser = Hive.box<AppUser>('userBox');
+  final currentUser = boxUser.get('currentUser');
+
+// if local data is missing, bring it from the firebase
+
+if(boxUser.isEmpty) {
+  final currentuserDoc=await FirebaseFirestore.instance
+    .collection('users')
+    .doc(uid)
+    .get();
+
+    if(currentuserDoc.exists){
+      final currUser=currentuserDoc.data();
+
+      if(currUser!=null){
+        final fetchedDataUser=AppUser(
+        uid: uid, 
+        username: currUser['username'], 
+        email: currUser['email']);
+        fetchedDataUser.SetIsSignedIn(true);
+
+        boxUser.put('currentUser',fetchedDataUser);
+        print("loaded from online the user values such as email, name and etc (the appUser class vars)");
+      }
+    }
+}
+
+
   
 
 

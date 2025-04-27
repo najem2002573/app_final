@@ -55,7 +55,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   workmanager: ^0.5.2
   flutter_local_notifications: ^19.1.0
-  
+  firebase_remote_config: ^5.4.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

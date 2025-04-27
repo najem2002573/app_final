@@ -187,22 +187,44 @@ Widget _buildlogOut(String title, IconData icon,
                 size: 16, color: Colors.grey.shade400)
             : null,
         onTap: () async{
-          await FirebaseAuth.instance.signOut();
-          print("user has signed out from the firebase");
-  // Optional: Clear local user data
-  final box = Hive.box<AppUser>('userBox');
-  box.delete('currentUser');
-  print("deleting the local user data from hive local");
-  // Navigate to sign-in screen
-  Navigator.of(context).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (context) => SignInScreen()),
-    (route) => false,
-  );
+          _logoutConfirmation(context);
         },
       ),
     );
   }
   
+
+  void _logoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Are you sure tou want to log out ${manager.getUname() } ? "),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+            onPressed: () async{
+               await FirebaseAuth.instance.signOut();
+          print("user has signed out from the firebase");
+          // Optional: Clear local user data
+          final box = Hive.box<AppUser>('userBox');
+          box.delete('currentUser');
+          print("deleting the local user data from hive local");
+          // Navigate to sign-in screen
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => SignInScreen()),
+            (route) => false,);
+            },
+             child: Text("confirm log out"))
+          ],
+        ),
+      );
+    });
+  }
+
+
+
 
   Widget _buildSocialButton(IconData icon) {
     return CircleAvatar(
