@@ -565,6 +565,18 @@ Future<void> updateUserInDatabase(AppUser user) async {
 int age=0; String goal=""; String gender=""; double HEIGHT=0; double WEIGHT=0;String activity_level="";
 String uid="";
 
+Map<String,dynamic> getUserDat(){
+  Map<String,dynamic> userDat={
+    'weight':this.WEIGHT,
+    'height':this.HEIGHT,
+    'age':this.age,
+
+  };
+
+  return userDat;
+}
+
+
 String getUid(){
   return uid;
 }

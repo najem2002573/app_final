@@ -1,22 +1,51 @@
+import 'package:app/pages/food.dart';
 import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 // Constants for calculations
-const double userWeight = 68; // kg
-const double userCalories = 2500; // kcal per day
-const double userBMI = 22.5;
-const bool isMale = true; // Change to false for female
 
-// Calculations
+class HealthPage extends StatefulWidget {
+  
+  @override
+  State<HealthPage> createState() => _HealthPageState();
+}
+
+class _HealthPageState extends State<HealthPage> {
+  BackendManager manager=BackendManager();
+   double 
+ userWeight = 0;
+ // kg
+ double userCalories=0; 
+ // kcal per day
+ double userBMI = 22.5;
+
+ bool isMale = true; 
+ // Change to false for female
 double get bodyFatPercentage =>
-    isMale ? (18 + 6) : (25 + 6); // Men: 18-24%, Women: 25-31%
-double get sugarIntake => userCalories / 4; // Sugar in grams
-double get muscleMass =>
-    (userWeight - (userWeight * (1.20 * userBMI / 100))) * 0.80;
+    isMale ? (18 + 6) : (25 + 6); 
+ // Men: 18-24%, Women: 25-31%
+double  sugarIntake =0;
+ // Sugar in grams
+double  muscleMass =0;
+    
 
-class HealthPage extends StatelessWidget {
-  final manager=BackendManager();
+@override
+void initState() {
+    // TODO: implement initState
+    super.initState();
+    
+    double weight=manager.WEIGHT;
+    double height=manager.HEIGHT;
+    this.userWeight=weight;
+    this.userCalories=manager.todayNutrints.calories;
+    this.userBMI=weight/(height*height/10000);
+    this.muscleMass=weight-(weight*(1.2*userBMI/100))*0.8;
+    this.sugarIntake=manager.todayNutrints.calories/4;
+
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,9 +84,9 @@ class HealthPage extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard('Weight', '68 kg', Icons.monitor_weight,
+                  _buildHealthCard('Weight', '${this.userWeight}', Icons.monitor_weight,
                       Colors.yellow.shade100, ""),
-                  _buildHealthCard('BMI', '22.5', Icons.bar_chart,
+                  _buildHealthCard('BMI', '${this.userBMI.toStringAsFixed(1)}', Icons.bar_chart,
                       Colors.green.shade100, ""),
                 ],
               ),
@@ -209,16 +238,39 @@ class HealthPage extends StatelessWidget {
   }
 
   Widget _buildComparisonTable() {
-    final comparisonData = [
-      {'label': 'Weight', 'userValue': '90 kg', 'idealValue': '68–75 kg'},
-      {'label': 'BMI', 'userValue': '29.4', 'idealValue': '18.5–24.9'},
-      {
-        'label': 'Body Fat',
-        'userValue': '28%',
-        'idealValue': isMale ? '18–24%' : '25–31%'
-      },
-      {'label': 'Muscle Mass', 'userValue': '45 kg', 'idealValue': '50–60 kg'},
-    ];
+    String goal=manager.goal;
+
+    String idealWeight = '';
+  String idealBMI = '';
+  String idealBodyFat = '';
+  String idealMuscleMass = '';
+
+  // Adjust ideal values based on user goal
+  if (goal == "Lift for Strength" || goal=="Gain Muscle Mass") {
+    idealWeight = isMale ? '75–90 kg' : '65–80 kg';
+    idealBMI = '25–29.9'; // Higher BMI due to increased muscle mass
+    idealBodyFat = isMale ? '12–18%' : '18–22%'; // Lower fat for strength
+    idealMuscleMass = isMale ? '60–70 kg' : '50–60 kg'; // Higher muscle density
+  } else if (goal == "Lose Weight") {
+    idealWeight = isMale ? '65–75 kg' : '55–65 kg';
+    idealBMI = '18.5–24.9'; // Healthy BMI range
+    idealBodyFat = isMale ? '15–20%' : '20–25%'; // Focus on fat reduction
+    idealMuscleMass = isMale ? '50–60 kg' : '40–50 kg'; // Maintain balanced muscle mass
+  } else if (goal == "Keep Fit") {
+    idealWeight = isMale ? '70–80 kg' : '60–70 kg';
+    idealBMI = '18.5–24.9'; // Maintain healthy BMI range
+    idealBodyFat = isMale ? '18–24%' : '25–31%'; // Maintenance fat levels
+    idealMuscleMass = isMale ? '50–60 kg' : '40–50 kg'; // Balanced muscle levels
+  }
+
+  // Comparison data table
+  var comparisonData = [
+    {'label': 'Weight', 'userValue': '${userWeight}', 'idealValue': idealWeight},
+    {'label': 'BMI', 'userValue': '${userBMI.toStringAsFixed(1)}', 'idealValue': idealBMI},
+    {'label': 'Body Fat', 'userValue': '${bodyFatPercentage} %', 'idealValue': idealBodyFat},
+    {'label': 'Muscle Mass', 'userValue': '${muscleMass.toStringAsFixed(2)}', 'idealValue': idealMuscleMass},
+  ];
+
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

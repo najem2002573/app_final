@@ -5,6 +5,7 @@ import 'package:app/pages/Reminderpage.dart';
 import 'package:app/pages/calender.dart';
 import 'package:app/pages/food.dart';
 import 'package:app/pages/login.dart';
+import 'package:app/pages/updateData.dart';
 import 'package:app/services/appUser.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -90,7 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
               // Settings List
               _buildSettingsTile("Calendar", Icons.calendar_today_outlined),
               _buildSettingsTile("Reminder", Icons.notifications_outlined),
-              _buildSettingsTile("Rate us on App store", Icons.star_border,
+              _buildSettingsTile("Update Data", Icons.update,
                   showTrailing: false),
               _buildSettingsTile(
                   "Terms & Conditions", Icons.description_outlined,
@@ -149,6 +150,9 @@ class _SettingsPageState extends State<SettingsPage> {
               MaterialPageRoute(builder: (context) => CalendarPage()),
             );
           }
+          if(title=="Update Data"){
+              Navigator.push(context, MaterialPageRoute(builder: (context)=>Updatedata()));
+            }
         },
       ),
     );
