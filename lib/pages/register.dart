@@ -4,6 +4,7 @@ import 'package:app/services/appUser.dart';
 import 'package:app/services/authUser.dart';
 import 'package:app/services/manager.dart';
 import 'package:app/services/nutrients.dart';
+import 'package:app/services/userDATA.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -11,6 +12,7 @@ import 'package:hive/hive.dart';
 class Register extends StatefulWidget {
   const Register({super.key});
 
+  
   @override
   State<Register> createState() => _RegisterState();
 }
@@ -23,6 +25,7 @@ class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
   
+  Register register=Register();
   @override
   Widget build(BuildContext context) {
     final manager=BackendManager();
@@ -180,6 +183,7 @@ class _RegisterState extends State<Register> {
                                   );
                                   
                                       if (user != null) {
+                                        
                                         // Navigate to homepage or show success
                                         print("register the user for the first time is success!!!");
                                         print("now the manager will store the user locally: caching");
@@ -187,6 +191,21 @@ class _RegisterState extends State<Register> {
                                         box.clear();
                                         await manager.cacheUser(user);
                                         
+                                        final box4 = Hive.box<AppUser>('userBox');
+          box4.delete('currentUser');
+          Box userBox = Hive.box<AppUser>('userBox');
+          await userBox.clear();  // ✅ Clears all stored user data!
+          Box box1=Hive.box<Nutrients>('nutrientsBox');
+          box1.clear();
+
+          Box box2=Hive.box<Userdata>('userData');
+          box2.clear();
+
+Box box3=Hive.box('profileimageBox');
+          box3.clear();
+Box box5=Hive.box<AppUser>('userBox');
+          box5.clear();
+          
                                         Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInScreen()));
                                       } else {
                                         // Show error

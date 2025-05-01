@@ -1,3 +1,4 @@
+import 'package:app/intro%20pages/genderpage.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/register.dart';
 import 'package:app/pages/reset_pass.dart';
@@ -211,9 +212,19 @@ class _SignInScreenState extends State<SignInScreen> {
           print('User name is: ${appUser.username}');
           print("User data cached locally.");
 
+         
+          if(manager.isNew){
+            manager.isNew=false;
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+            MaterialPageRoute(builder: (context) => PersonalInfoPage()));
+          }
+          else{
+            manager.isNew=false;
+            Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => HomePage()));
+          }
+        
+          
         } else {
           _showSnackBar(context, "User data not found in Firestore.");
         }

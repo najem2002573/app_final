@@ -7,6 +7,8 @@ import 'package:app/pages/food.dart';
 import 'package:app/pages/login.dart';
 import 'package:app/pages/updateData.dart';
 import 'package:app/services/appUser.dart';
+import 'package:app/services/nutrients.dart';
+import 'package:app/services/userDATA.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -44,7 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    this.userImagePath =box.get('profileimage');
+    this.userImagePath = box.get('profileimage') ?? "lib/images/user.png";  // ✅ Fallback image
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: SafeArea(
@@ -58,7 +60,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundImage: FileImage(File(userImagePath)),
+                    backgroundImage:   userImagePath.isNotEmpty
+  ? FileImage(File(userImagePath))   // ✅ Load image from file
+  : AssetImage("lib/images/user.png") ,
                   ),
                   GestureDetector(
                     onTap: () {
@@ -214,6 +218,20 @@ Widget _buildlogOut(String title, IconData icon,
           // Optional: Clear local user data
           final box = Hive.box<AppUser>('userBox');
           box.delete('currentUser');
+          Box userBox = Hive.box<AppUser>('userBox');
+          await userBox.clear();  // ✅ Clears all stored user data!
+          Box box1=Hive.box<Nutrients>('nutrientsBox');
+          box1.clear();
+
+          Box box2=Hive.box<Userdata>('userData');
+          box2.clear();
+
+Box box3=Hive.box('profileimageBox');
+          box3.clear();
+Box box4=Hive.box<AppUser>('userBox');
+          box4.clear();
+          
+          
           print("deleting the local user data from hive local");
           // Navigate to sign-in screen
           Navigator.of(context).pushAndRemoveUntil(

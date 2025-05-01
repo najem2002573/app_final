@@ -95,7 +95,7 @@ class _UpdatedataState extends State<Updatedata> {
                   String weight = weightController.text;
                   String height = heightController.text;
                   String age = ageController.text; // Read age input
-
+                  manager.getPrediction();
                   print(
                       "Saved Data - Weight: $weight, Height: $height, Age: $age, Goal: $selectedGoal");
 

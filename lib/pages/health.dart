@@ -35,6 +35,7 @@ void initState() {
     // TODO: implement initState
     super.initState();
     
+    manager.loadUserData();
     double weight=manager.WEIGHT;
     double height=manager.HEIGHT;
     this.userWeight=weight;
@@ -238,9 +239,9 @@ void initState() {
   }
 
   Widget _buildComparisonTable() {
-    String goal=manager.goal;
+  String goal=manager.goal;
 
-    String idealWeight = '';
+  String idealWeight = '';
   String idealBMI = '';
   String idealBodyFat = '';
   String idealMuscleMass = '';

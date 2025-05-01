@@ -33,11 +33,16 @@ class BackendManager
 {
  
   String profile_image_path="";
-
+  
   void setProfiePath(String path){
     this . profile_image_path=path;
   }
 
+  bool isNew=true;
+
+  
+
+  
 
   String getProfileImagePath(){
     return this.profile_image_path;
@@ -170,7 +175,7 @@ Future<void> loadTodayNutrients() async {
 //used variables
 
 
-///////////////////////////////////////////  IMAGE DETECTION AND NUTRINETS AI GET PART ////////////////////
+///////////////////////////////////////////  IMAGE DETECTION AND NUTRINETS AI GET PART + Goal api ////////////////////
 
  String aiKey="";
  String GpsKey="";
@@ -191,6 +196,107 @@ Future<void> loadKeys()async{
 
 }
 
+                  //////////  the fitness goal probability ///////////////////
+
+int getActivityLevel(String title) {// for the ml model. get the activity level in int.
+  switch (title) {
+    case "Beginner":
+      return 0;
+    case "Irregular training":
+      return 1;
+    case "Medium":
+      return 2;
+    case "Advanced":
+      return 3;
+    default:
+      return 0; // Error case
+  }
+}
+
+int bodytype(double bmi){//for the ml model. get the current body type in int.
+  if (bmi<18.5) {
+    return 0;
+  } 
+  else if (bmi>18.5 && bmi<25)
+    // ignore: curly_braces_in_flow_control_structures
+    return 1;
+    // ignore: curly_braces_in_flow_control_structures
+    else return 2;
+}
+
+int getGoalIndex(String goalLabel) {/// for the ml model. get the goal in int.
+  switch (goalLabel) {
+    case "Lose weight":
+      return 0;
+    case "Keep Fit":
+      return 1;
+    case "Get stronger":
+      return 2;
+    case "Gain muscle mass":
+      return 3;
+    default:
+      return 1; // Error case
+  }
+}
+
+
+double successProba=0;
+
+
+Future<dynamic> getPrediction() async {
+  final String apiUrl = "http://192.168.53.113:8000/predict_goal";
+  
+  // Calculate BMI & gender formatting
+  double bmi = WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100));
+  int gender = (this.gender == "Male") ? 0 : 1;
+
+  // Load user data
+  Box userdata = Hive.box<Userdata>('userData');
+  loadUserData();
+
+  // Prepare input correctly
+  Map<String, dynamic> userInput = {
+    "Height_cm": this.HEIGHT,
+    "Weight_kg": this.WEIGHT,
+    "Age": this.age,
+    "Gender": gender,
+    "Activity_Level": 3,//getActivityLevel(this.activity_level),
+    "Current_Body_Shape": bodytype(bmi),  // Ensure function correctly returns an integer
+    "Desired_Body_Shape": getGoalIndex(this.goal)
+  };
+
+  print("User input for ML model: $userInput");
+
+  try {
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        "Content-Type": "application/json",
+        "Connection": "keep-alive"
+      },
+      body: jsonEncode(userInput),
+    );
+
+    print("sending request now, waiting for code 200");
+    if (response.statusCode == 200) {
+      print("code 200, were good");
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      // FIX: Correctly extract probabilities
+     List<double> probabilities = List<double>.from(data["probabilities"]);  
+     this.successProba = probabilities[1];  // ✅ Extract second probability (adjust if needed)
+      print("All ML model probabilities: $probabilities");
+      
+      return {"probabilities": probabilities};  // Return corrected response
+    } else {
+      throw Exception("Failed to get prediction: ${response.body}");
+    }
+  } catch (error) {
+    print("🚨 ML goal predict failed!");
+    print("Error fetching prediction: $error");
+    return {"error": error.toString()};  // Return error message properly
+  }
+}
 
 
 Future<String> pickAndUploadImage() async {
@@ -235,7 +341,7 @@ Future<String> pickAndUploadImage() async {
 
 //using custome image model to identify food
 Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
-  final uri = Uri.parse('http://10.0.2.2:8000/predict/');
+  final uri = Uri.parse('http://192.168.53.113:8000/predict_food/');
   final request = http.MultipartRequest('POST', uri);
 
   // Add the image as a file
@@ -780,26 +886,30 @@ var workoutsData = {
 */
 
 // local user data variable , uplaoded when the app runs first time so manager parameters are loaded
-Future<void> loadUserData(String userId) async {
+Future<void> loadUserData() async {
   print("now loading all user data, if it's not hived then load it from Firebase via the uid");
 
   final userBox = Hive.box<Userdata>('userData');
-  final data = userBox.get(userId);
+  final data = userBox.get("userdata");
+
+  print("from userdata hive the age is : ${data!.age} and his weight is : ${data.weight}");
 
   if (data != null) {
     // 🔹 Load from Hive
     print("Loaded from Hive");
-    this.HEIGHT = data.height;
-    this.WEIGHT  = data.weight;
-    this.goal  = data.goal;
-    this.age  = data.age;
-    this.gender = data.gender;
+    HEIGHT = data.height;
+    WEIGHT  = data.weight;
+    goal  = data.goal;
+    age  = data.age;
+    gender = data.gender;
     this.activity_level = data.activityLevel; 
+    print("activity level: $activity_level");
+    print("the loaded user data");
     print("Loaded from Hive: $age, $goal, $activity_level");
   } else {
     // 🔸 Load from Firebase
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final doc = await FirebaseFirestore.instance.collection('users').doc(this.uid).get();
       if (doc.exists) {
         final firebaseData = doc.data();
         if (firebaseData != null) {
@@ -812,7 +922,7 @@ Future<void> loadUserData(String userId) async {
             weight: firebaseData['weight'] ?? 0.0,
             activityLevel: firebaseData['activity_level'] ?? "",
           );
-          await userBox.put(userId, dat); // ✅ save with same key
+          await userBox.put('userdata', dat); // ✅ save with same key
 
           this.HEIGHT = dat.height;
           this.WEIGHT = dat.weight;
@@ -820,7 +930,7 @@ Future<void> loadUserData(String userId) async {
           this.age = dat.age;
           this.gender = dat.gender;
           this.activity_level = dat.activityLevel;
-
+print("the loaded user data");
           print("Loaded from Firebase and saved to Hive: $age, $goal, $activity_level");
         }
       }

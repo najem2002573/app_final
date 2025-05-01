@@ -83,7 +83,7 @@ manager.loadKeys();
 
  final user = FirebaseAuth.instance.currentUser;
  String uid=user?.uid ?? "";
-manager.loadUserData(uid);
+manager.loadUserData();
 print("in the main for the current instance of user the uid is : $uid");
 manager.setUid(uid);
  //check the userData (weight, height... ) locally and load them from the firebase if needed
@@ -180,7 +180,9 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    manager.isNew=true;
     _handleStartupLogic();
+
   }
 
   Future<void> _handleStartupLogic() async {

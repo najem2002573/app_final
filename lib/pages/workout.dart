@@ -102,7 +102,7 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
             SizedBox(height: 15),
             _buildWelcomeMessage(),
             SizedBox(height: 15),
-            _buildCalendarWidget(),
+           // _buildCalendarWidget(),
             SizedBox(height: 15),
             _buildCategorySelection(),
             SizedBox(height: 20),
@@ -112,7 +112,7 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
+      //bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 

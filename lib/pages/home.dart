@@ -27,14 +27,13 @@ final manager=BackendManager();
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   
-
+  
 
   @override
   void initState() {
     // TODO: implement initState
+    manager.loadUserData();
     
-    
-
   }
 
   Box b=Hive.box<AppUser>('userBox');
@@ -128,14 +127,15 @@ class HomePageContent extends StatefulWidget {
 class _HomePageContentState extends State<HomePageContent> {
   final List<double> weeklyStats = [3, 4, 2, 5, 8, 5, 3];
   String profileImagePAth="";
+  double probability=0;
 
-
+ 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     Box profileImage=Hive.box('profileimageBox');
-    this.profileImagePAth=profileImage.get('profileimage');
+    profileImagePAth=profileImage.get('profileimage') ?? "";
 
   }
   @override
@@ -178,7 +178,9 @@ class _HomePageContentState extends State<HomePageContent> {
                   backgroundColor: Colors.pink.shade50,
                   child: CircleAvatar(
                     radius: 28, // adjusted to fit inside properly
-                    backgroundImage: FileImage(File(profileImagePAth)), // Replace later
+                   backgroundImage: profileImagePAth.isNotEmpty
+  ? FileImage(File(profileImagePAth))   // ✅ Load image from file
+  : null,   // ✅ Use default image if path is empty,// Replace later
                   ),
                 ),
               ],
@@ -197,6 +199,8 @@ class _HomePageContentState extends State<HomePageContent> {
     ),
   ),
 );
+
+  
   }
 
   Widget _buildMyPlanSection(BuildContext context) {
@@ -422,8 +426,16 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+ 
   Widget buildSuccessProbabilityCard() {
-    double probability = 0.65;
+     double probability=0;
+     
+     manager.getPrediction;
+     print("invoking manager goal predictions");
+     probability=manager.successProba;
+     print("the proba is $probability");
+     
+    print("the proba got from the goal ml model is : $probability");
     return Container(
       width: 500,
       height: 206,
@@ -572,6 +584,7 @@ class _HomePageContentState extends State<HomePageContent> {
 }
 
 Widget _buildMotivationalMusic() {
+  
   List<Map<String, String>> musicList = [
     {
       "title": "Eye of the Tiger",
