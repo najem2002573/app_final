@@ -1,4 +1,5 @@
 import 'package:app/services/manager.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -16,11 +17,12 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
   String selectedCategory = "";
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-
+  
 
  @override
 void initState() {
   super.initState();
+  
 /*
 if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
     selectedCategory = 'Lift for Strength';
@@ -32,8 +34,26 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
 */
   print("🔁 Initial category based on goal: $selectedCategory");
 
+}
+  
 
 
+
+Future<DocumentSnapshot<Object?>> getWorkoutForSelectedCategory() async{
+  
+
+  print("the selected category is : $selectedCategory and its bringing the workout data");
+  switch(selectedCategory){
+    case"Cardio\n ":
+      return await getCardio();
+    case"Keep\nfit":
+      return await getKeepFit();
+    case"Lift for\nStrength":
+      return await getLiftForStrength();
+    default : return getCardio();
+    
+  }
+  
 }
   
 
@@ -89,8 +109,12 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
     },
   ];
 
+
+
+
   @override
   Widget build(BuildContext context) {
+    Future<DocumentSnapshot<Object?>> workoutData=getKeepFit();
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: _buildAppBar(),
@@ -108,7 +132,8 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
             SizedBox(height: 20),
             _buildDailyPlanCard(),
             SizedBox(height: 20),
-            _buildWorkoutList(context),
+            _buildWorkoutList(context,getWorkoutForSelectedCategory()),
+            
           ],
         ),
       ),
@@ -244,6 +269,8 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
         onTap: () {
           setState(() {
             selectedCategory = title;
+            
+        
           });
         },
         child: Container(
@@ -369,65 +396,51 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
     );
   }
 
-  Widget _buildWorkoutList(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text("Workout Programs",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        ListView.separated(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: workoutList.length,
-          separatorBuilder: (context, index) => SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final workout = workoutList[index];
-            return AnimatedContainer(
-              duration: Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: Colors.grey.shade100,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  )
-                ],
-              ),
-              child: ListTile(
-                contentPadding: EdgeInsets.all(12),
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    workout["image"],
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                title: Text(workout["title"],
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    "${workout["duration"]}  |  ${workout["calories"]}",
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ),
-                onTap: () {
-                  // Optionally navigate to detail
-                },
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
+
+
+
+////////////////////////////////////   IMPORTING THE WORKOUTS FROM DB \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+///
+///
+///                                   THE GETTERS FOR PRESENTATION   
+Future<DocumentSnapshot<Object?>> getCardio() async{
+    return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
+      .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
+}
+
+Future<DocumentSnapshot<Object?>> getKeepFit() async{
+    return FirebaseFirestore.instance.collection("workouts").doc("keep_fit").collection("plans")
+      .doc("46m5qqfM8BcpIRMu9Yl0").get(); // Plan data as a Map
+}
+
+Future<DocumentSnapshot<Object?>> getLiftForStrength() async{
+    return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
+      .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
+}
+
+
+
+
+
+Widget _buildWorkoutList(BuildContext context,Future<DocumentSnapshot<Object?>> typeWorkout) {
+  
+  return FutureBuilder<DocumentSnapshot>(
+    future: typeWorkout,
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) return CircularProgressIndicator();
+
+      Map<String, dynamic> workoutData = snapshot.data!.data() as Map<String, dynamic>;
+
+      return Column(
+        children: [
+          Text("Plan Name: ${workoutData["name"]}", style: TextStyle(fontSize: 20)),
+          Text("Duration: ${workoutData["duration"]} mins"),
+          ...workoutData["exercises"].map<Widget>((exercise) => ListTile(title: Text(exercise))).toList(),
+        ],
+      );
+    },
+  );
+}
 
   Widget _buildBottomNavBar() {
     return Container(

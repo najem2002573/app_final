@@ -4,6 +4,7 @@ import 'package:app/pages/gymspage.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
 import 'package:app/services/nutrients.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:app/pages/food.dart';
 import 'package:app/pages/health.dart'; // Ensure this is the correct path
@@ -136,7 +137,7 @@ class _HomePageContentState extends State<HomePageContent> {
     super.initState();
     Box profileImage=Hive.box('profileimageBox');
     profileImagePAth=profileImage.get('profileimage') ?? "";
-
+    this.probability=manager.successProba;
   }
   @override
   Widget build(BuildContext context) {
@@ -233,12 +234,8 @@ class _HomePageContentState extends State<HomePageContent> {
                 onPressed: () async {
                   //manager.testHive();
                   //test the uid
-                  print("now deleting managers nutrients");
-                  await manager.deleteNutrients();
-                  Box box=Hive.box<Nutrients>('nutrientsBox');
-                            print(box.keys);  // will list all keys
-          print(box.values);  // will show all values
-
+                  print("all plans from cardio are: ");
+                  print(FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans").doc("peLX0fXhGs8KScLIiOhG").get().toString());
 
                   
                 },
@@ -426,14 +423,28 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
- 
+
+  Future<void> inokeUpdatePredict() async{
+    await manager.getPrediction();
+
+    if(probability!=manager.successProba) {
+      setState(() {
+    probability = manager.successProba;  // ✅ Ensure the state updates immediately
+  });
+    }
+
+  }
+
   Widget buildSuccessProbabilityCard() {
-     double probability=0;
+      // default value
      
-     manager.getPrediction;
+     inokeUpdatePredict();
      print("invoking manager goal predictions");
-     probability=manager.successProba;
-     print("the proba is $probability");
+
+     
+     
+     
+    print("the proba is $probability");
      
     print("the proba got from the goal ml model is : $probability");
     return Container(

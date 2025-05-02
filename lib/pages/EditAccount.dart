@@ -33,6 +33,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
     if(pickedFile!=null){
       setState(() {
             this.imagepath=pickedFile.path;
+            build(context);
           });
       Box profileImage=Hive.box('profileimageBox');
       profileImage.put("profileimage", this.imagepath);
@@ -183,6 +184,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
                   print("the xuser id is : ${Xuser.uid}");
                   manager.cacheUser(Xuser);
 
+                  manager.getPrediction();
                   FocusScope.of(context).unfocus();
                   ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

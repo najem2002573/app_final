@@ -34,7 +34,11 @@ class _SettingsPageState extends State<SettingsPage> {
     // TODO: implement initState
     super.initState();
     if(box.get('profileimage')!=null) {
-      this.userImagePath =box.get('profileimage');
+      setState(() {
+        this.userImagePath =box.get('profileimage');
+        build(context);
+      });
+      
     }
     else
       {this.userImagePath="";}
@@ -45,8 +49,7 @@ class _SettingsPageState extends State<SettingsPage> {
      
 
   @override
-  Widget build(BuildContext context) {
-    this.userImagePath = box.get('profileimage') ?? "lib/images/user.png";  // ✅ Fallback image
+  Widget build(BuildContext context) { 
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: SafeArea(
