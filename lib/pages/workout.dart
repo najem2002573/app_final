@@ -22,6 +22,7 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
  @override
 void initState() {
   super.initState();
+  this.selectedCategory="";
   
 /*
 if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
@@ -39,23 +40,20 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
 
 
 
-Future<DocumentSnapshot<Object?>> getWorkoutForSelectedCategory() async{
-  
+Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
 
-  print("the selected category is : $selectedCategory and its bringing the workout data");
-  switch(selectedCategory){
-    case"Cardio\n ":
+  switch (selectedCategory) {
+    case "Cardio\n ":
       return await getCardio();
-    case"Keep\nfit":
+    case "Keep\nfit":
       return await getKeepFit();
-    case"Lift for\nStrength":
+    case "Lift for\nStrength":
       return await getLiftForStrength();
-    default : return getCardio();
-    
+    default:
+        return FirebaseFirestore.instance.collection("workouts")
+        .doc("default").collection("plans").doc("emptyDoc").get();   // ✅ Ensures future can handle null case
   }
-  
 }
-  
 
   final List<Map<String, dynamic>> workoutList = [
     {
@@ -114,7 +112,8 @@ Future<DocumentSnapshot<Object?>> getWorkoutForSelectedCategory() async{
 
   @override
   Widget build(BuildContext context) {
-    Future<DocumentSnapshot<Object?>> workoutData=getKeepFit();
+    
+    print("the very first selected category of page load is : $selectedCategory");
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: _buildAppBar(),
@@ -132,7 +131,7 @@ Future<DocumentSnapshot<Object?>> getWorkoutForSelectedCategory() async{
             SizedBox(height: 20),
             _buildDailyPlanCard(),
             SizedBox(height: 20),
-            _buildWorkoutList(context,getWorkoutForSelectedCategory()),
+            _buildWorkoutList(context),
             
           ],
         ),
@@ -403,17 +402,17 @@ Future<DocumentSnapshot<Object?>> getWorkoutForSelectedCategory() async{
 ///
 ///
 ///                                   THE GETTERS FOR PRESENTATION   
-Future<DocumentSnapshot<Object?>> getCardio() async{
+Future<DocumentSnapshot> getCardio() async{
     return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
       .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
 }
 
-Future<DocumentSnapshot<Object?>> getKeepFit() async{
+Future<DocumentSnapshot> getKeepFit() async{
     return FirebaseFirestore.instance.collection("workouts").doc("keep_fit").collection("plans")
       .doc("46m5qqfM8BcpIRMu9Yl0").get(); // Plan data as a Map
 }
 
-Future<DocumentSnapshot<Object?>> getLiftForStrength() async{
+Future<DocumentSnapshot> getLiftForStrength() async{
     return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
       .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
 }
@@ -422,14 +421,22 @@ Future<DocumentSnapshot<Object?>> getLiftForStrength() async{
 
 
 
-Widget _buildWorkoutList(BuildContext context,Future<DocumentSnapshot<Object?>> typeWorkout) {
-  
-  return FutureBuilder<DocumentSnapshot>(
-    future: typeWorkout,
+Widget _buildWorkoutList(BuildContext context) {
+  return FutureBuilder<DocumentSnapshot?>(
+    future: getWorkoutForSelectedCategory(),
     builder: (context, snapshot) {
-      if (!snapshot.hasData) return CircularProgressIndicator();
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return CircularProgressIndicator();
+      }
+      if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+        return Center(child: Text("Please select a training category."));
+      }
 
-      Map<String, dynamic> workoutData = snapshot.data!.data() as Map<String, dynamic>;
+      Map<String, dynamic>? workoutData = snapshot.data?.data() as Map<String, dynamic>?;
+
+      if (workoutData == null) {
+        return Text("Workout data not found.");
+      }
 
       return Column(
         children: [
