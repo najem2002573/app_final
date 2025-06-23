@@ -244,7 +244,7 @@ double successProba=0;
 
 
 Future<dynamic> getPrediction() async {
-  final String apiUrl = "http://192.168.53.179:8000/predict_goal";
+  final String apiUrl = "http://192.168.102.197:8000/predict_goal";
   
   // Calculate BMI & gender formatting
   double bmi = WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100));
@@ -342,7 +342,7 @@ Future<String> pickAndUploadImage() async {
 
 //using custome image model to identify food
 Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
-  final uri = Uri.parse('http://192.168.53.179:8000/predict_food/');
+  final uri = Uri.parse('http://192.168.102.197:8000/predict_food/');
   final request = http.MultipartRequest('POST', uri);
 
   // Add the image as a file

@@ -42,7 +42,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   // App Logo
                   Center(
                     child: Image.asset(
-                      'lib/images/wellness.jpg', // Replace with your logo
+                      'lib/images/logo.jpeg', // Replace with your logo
                       height: 100,
                     ),
                   ),

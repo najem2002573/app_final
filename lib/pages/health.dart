@@ -3,66 +3,58 @@ import 'package:app/services/manager.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-// Constants for calculations
-
 class HealthPage extends StatefulWidget {
-  
   @override
   State<HealthPage> createState() => _HealthPageState();
 }
 
 class _HealthPageState extends State<HealthPage> {
-  BackendManager manager=BackendManager();
-   double 
- userWeight = 0;
- // kg
- double userCalories=0; 
- // kcal per day
- double userBMI = 22.5;
+  BackendManager manager = BackendManager();
 
- bool isMale = true; 
- // Change to false for female
-double get bodyFatPercentage =>
-    isMale ? (18 + 6) : (25 + 6); 
- // Men: 18-24%, Women: 25-31%
-double  sugarIntake =0;
- // Sugar in grams
-double  muscleMass =0;
-    
+  String colesterol = "";
 
-@override
-void initState() {
-    // TODO: implement initState
+  double userWeight = 0;
+  double userCalories = 0;
+  double userBMI = 22.5;
+  bool isMale = true;
+  double sugarIntake = 0;
+  double muscleMass = 0;
+
+  double get bodyFatPercentage =>
+      isMale ? (18 + 6) : (25 + 6); // Men: 18-24%, Women: 25-31%
+
+  @override
+  void initState() {
     super.initState();
-    
     manager.loadUserData();
-    double weight=manager.WEIGHT;
-    double height=manager.HEIGHT;
-    this.userWeight=weight;
-    this.userCalories=manager.todayNutrints.calories;
-    this.userBMI=weight/(height*height/10000);
-    this.muscleMass=weight-(weight*(1.2*userBMI/100))*0.8;
-    this.sugarIntake=manager.todayNutrints.calories/4;
+    double weight = manager.WEIGHT;
+    double height = manager.HEIGHT;
+    this.userWeight = weight;
+    this.userCalories = manager.todayNutrints.calories;
+    this.userBMI = weight / (height * height / 10000);
+    this.muscleMass = weight - (weight * (1.2 * userBMI / 100)) * 0.8;
+    this.sugarIntake = manager.todayNutrints.calories / 4;
 
+    if (manager.age < 20)
+      this.colesterol = "170";
+    else
+      this.colesterol = "200";
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        backgroundColor: Colors.teal.shade300,
-        elevation: 0,
+        backgroundColor: Colors.teal.shade400,
+        elevation: 2,
         centerTitle: true,
         title: Row(
-          mainAxisSize: MainAxisSize.min, // Centers the content nicely
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              "Health",
-              style: TextStyle(color: Colors.white),
-            ),
-            Icon(Icons.heart_broken, color: Colors.white),
+            Icon(Icons.favorite, color: Colors.white),
             SizedBox(width: 8),
+            Text("Health Summary", style: TextStyle(color: Colors.white)),
           ],
         ),
       ),
@@ -73,128 +65,61 @@ void initState() {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard('Heart Rate', '97 bpm', Icons.favorite,
-                      Colors.blue.shade100, ""),
-                  _buildHealthCard('Cholesterol', '180 mg/dL',
-                      Icons.medical_services, Colors.orange.shade100, ""),
+                  _buildHealthCard('Cholesterol', '$colesterol mg/dL',
+                      Icons.medical_services, Colors.orange.shade200, ""),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildHealthCard('Weight', '${this.userWeight}', Icons.monitor_weight,
-                      Colors.yellow.shade100, ""),
-                  _buildHealthCard('BMI', '${this.userBMI.toStringAsFixed(1)}', Icons.bar_chart,
-                      Colors.green.shade100, ""),
+                  _buildHealthCard('Weight', '$userWeight kg',
+                      Icons.monitor_weight, Colors.yellow.shade200, ""),
+                  SizedBox(width: 8),
+                  _buildHealthCard(
+                      'BMI',
+                      '${userBMI.toStringAsFixed(1)}',
+                      Icons.bar_chart,
+                      Colors.green.shade200,
+                      ""),
                 ],
               ),
               SizedBox(height: 20),
               Text('Additional Health Metrics',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20),
+              SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildHealthCard(
                       "Body Fat",
                       "${bodyFatPercentage.toStringAsFixed(1)}%",
                       Icons.percent,
-                      Colors.purple.shade100,
+                      Colors.purple.shade200,
                       ""),
+                  SizedBox(width: 8),
                   _buildHealthCard(
                       "Sugar Intake",
                       "${sugarIntake.toStringAsFixed(1)} g",
                       Icons.cake,
-                      Colors.pink.shade100,
+                      Colors.pink.shade200,
                       ""),
                 ],
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildHealthCard(
                       "Muscle Mass",
                       "${muscleMass.toStringAsFixed(1)} kg",
                       Icons.fitness_center,
-                      Colors.blue.shade100,
+                      Colors.blue.shade200,
                       ""),
                 ],
               ),
               SizedBox(height: 30),
               _buildComparisonTable(),
               SizedBox(height: 30),
-              Text("Weekly Muscle & Fat Trends",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10),
-              Container(
-                height: 280,
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Color(0xFF1C2331),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: BarChart(
-                  BarChartData(
-                    maxY: 12,
-                    barGroups: _barGroups(),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          interval: 2,
-                          getTitlesWidget: (value, meta) {
-                            return Text('${value.toInt()}K',
-                                style: TextStyle(
-                                    color: Colors.grey[400], fontSize: 12));
-                          },
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            const days = [
-                              'Mn',
-                              'Te',
-                              'Wd',
-                              'Tu',
-                              'Fr',
-                              'St',
-                              'Sn'
-                            ];
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(days[value.toInt()],
-                                  style: TextStyle(color: Colors.grey[400])),
-                            );
-                          },
-                        ),
-                      ),
-                      rightTitles:
-                          AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles:
-                          AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    ),
-                    gridData: FlGridData(show: false),
-                    borderData: FlBorderData(show: false),
-                    barTouchData: BarTouchData(
-                      enabled: true,
-                      touchTooltipData: BarTouchTooltipData(
-                        //  tooltipBgColor: Colors.white,
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          return BarTooltipItem(
-                              '${rod.toY.toStringAsFixed(1)}K',
-                              TextStyle(color: Colors.black));
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              buildBodyCompositionChart()
             ],
           ),
         ),
@@ -207,29 +132,31 @@ void initState() {
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(16),
-        margin: EdgeInsets.only(right: 8),
+        margin: EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.8), color.withOpacity(0.5)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: Colors.grey.shade300, blurRadius: 8, offset: Offset(2, 4)),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 24),
-            SizedBox(height: 8),
-            Text(title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-            Text(value,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Icon(icon, size: 26, color: Colors.black87),
+            SizedBox(height: 12),
+            Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             if (suggestion.isNotEmpty)
               Padding(
-                padding: EdgeInsets.only(top: 8),
+                padding: EdgeInsets.only(top: 6),
                 child: Text(
                   suggestion,
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 13, color: Colors.red, fontWeight: FontWeight.bold),
                 ),
               ),
           ],
@@ -238,40 +165,51 @@ void initState() {
     );
   }
 
+
+
+
+
   Widget _buildComparisonTable() {
-  String goal=manager.goal;
+    String goal = manager.goal;
 
-  String idealWeight = '';
-  String idealBMI = '';
-  String idealBodyFat = '';
-  String idealMuscleMass = '';
+    String idealWeight = '';
+    String idealBMI = '';
+    String idealBodyFat = '';
+    String idealMuscleMass = '';
 
-  // Adjust ideal values based on user goal
-  if (goal == "Lift for Strength" || goal=="Gain Muscle Mass") {
-    idealWeight = isMale ? '75–90 kg' : '65–80 kg';
-    idealBMI = '25–29.9'; // Higher BMI due to increased muscle mass
-    idealBodyFat = isMale ? '12–18%' : '18–22%'; // Lower fat for strength
-    idealMuscleMass = isMale ? '60–70 kg' : '50–60 kg'; // Higher muscle density
-  } else if (goal == "Lose Weight") {
-    idealWeight = isMale ? '65–75 kg' : '55–65 kg';
-    idealBMI = '18.5–24.9'; // Healthy BMI range
-    idealBodyFat = isMale ? '15–20%' : '20–25%'; // Focus on fat reduction
-    idealMuscleMass = isMale ? '50–60 kg' : '40–50 kg'; // Maintain balanced muscle mass
-  } else if (goal == "Keep Fit") {
-    idealWeight = isMale ? '70–80 kg' : '60–70 kg';
-    idealBMI = '18.5–24.9'; // Maintain healthy BMI range
-    idealBodyFat = isMale ? '18–24%' : '25–31%'; // Maintenance fat levels
-    idealMuscleMass = isMale ? '50–60 kg' : '40–50 kg'; // Balanced muscle levels
-  }
+    if (goal == "Lift for Strength" || goal == "Gain Muscle Mass") {
+      idealWeight = isMale ? '75–90' : '65–80';
+      idealBMI = '25–29.9';
+      idealBodyFat = isMale ? '12–18' : '18–22';
+      idealMuscleMass = isMale ? '60–70' : '50–60';
+    } else if (goal == "Lose Weight") {
+      idealWeight = isMale ? '65–75' : '55–65';
+      idealBMI = '18.5–24.9';
+      idealBodyFat = isMale ? '15–20' : '20–25';
+      idealMuscleMass = isMale ? '50–60' : '40–50';
+    } else {
+      idealWeight = isMale ? '70–80' : '60–70';
+      idealBMI = '18.5–24.9';
+      idealBodyFat = isMale ? '18–24' : '25–31';
+      idealMuscleMass = isMale ? '50–60' : '40–50';
+    }
 
-  // Comparison data table
-  var comparisonData = [
-    {'label': 'Weight', 'userValue': '${userWeight}', 'idealValue': idealWeight},
-    {'label': 'BMI', 'userValue': '${userBMI.toStringAsFixed(1)}', 'idealValue': idealBMI},
-    {'label': 'Body Fat', 'userValue': '${bodyFatPercentage} %', 'idealValue': idealBodyFat},
-    {'label': 'Muscle Mass', 'userValue': '${muscleMass.toStringAsFixed(2)}', 'idealValue': idealMuscleMass},
-  ];
+    Color getColor(String type, double value) {
+      List<String> range = [];
+      if (type == 'weight') range = idealWeight.split('–');
+      if (type == 'bmi') range = idealBMI.split('–');
+      if (type == 'fat') range = idealBodyFat.replaceAll('%', '').split('–');
+      if (type == 'muscle') range = idealMuscleMass.split('–');
 
+      double min = double.tryParse(range[0]) ?? 0;
+      double max = double.tryParse(range[1]) ?? double.infinity;
+
+      if (value >= min && value <= max) return Colors.green.shade700;
+      if ((value < min && value >= min - 3) || (value > max && value <= max + 3)) {
+        return Colors.orange.shade600;
+      }
+      return Colors.red.shade600;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,72 +217,136 @@ void initState() {
         Text("Comparison Table",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         SizedBox(height: 10),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 6)],
-          ),
-          child: Column(
-            children: comparisonData.map((row) {
-              return Container(
-                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                decoration: BoxDecoration(
-                  border:
-                      Border(bottom: BorderSide(color: Colors.grey.shade300)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                        child: Text(row['label']!,
-                            style: TextStyle(fontSize: 14))),
-                    Expanded(
-                        child: Text(row['userValue']!,
-                            style: TextStyle(fontWeight: FontWeight.bold))),
-                    Expanded(
-                        child: Text(row['idealValue']!,
-                            style: TextStyle(
-                                fontSize: 13, color: Colors.green.shade700))),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ),
+        _buildComparisonRow("Weight", "${userWeight.toStringAsFixed(1)} kg",
+            idealWeight + " kg", getColor('weight', userWeight)),
+        _buildComparisonRow("BMI", "${userBMI.toStringAsFixed(1)}", idealBMI,
+            getColor('bmi', userBMI)),
+        _buildComparisonRow(
+            "Body Fat",
+            "${bodyFatPercentage.toStringAsFixed(1)} %",
+            idealBodyFat + "%",
+            getColor('fat', bodyFatPercentage)),
+        _buildComparisonRow(
+            "Muscle Mass",
+            "${muscleMass.toStringAsFixed(1)} kg",
+            idealMuscleMass + " kg",
+            getColor('muscle', muscleMass)),
       ],
     );
   }
 
-  List<BarChartGroupData> _barGroups() {
+  Widget _buildComparisonRow(
+      String label, String userVal, String idealVal, Color valueColor) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 5)],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(child: Text(label, style: TextStyle(fontSize: 14))),
+          Expanded(
+            child: Text(userVal,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold, color: valueColor)),
+          ),
+          Expanded(
+            child: Text(idealVal,
+                textAlign: TextAlign.right,
+                style: TextStyle(fontSize: 13, color: Colors.green.shade700)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildBodyCompositionChart() {
     final teal = Colors.cyanAccent;
     final pink = Colors.pinkAccent;
+
     final data = [
-      [2.5, 5.5],
-      [6.2, 5.9],
-      [3.0, 9.8],
-      [1.0, 9.5],
-      [9.5, 9.5],
-      [2.0, 10.0],
-      [1.5, 4.5],
+      [muscleMass, (bodyFatPercentage / 100) * userWeight],
     ];
-    return List.generate(7, (index) {
+
+    List<BarChartGroupData> barGroups = List.generate(data.length, (index) {
       return BarChartGroupData(
         x: index,
         barRods: [
           BarChartRodData(
-              toY: data[index][0],
-              color: teal,
-              width: 7,
-              borderRadius: BorderRadius.circular(4)),
+            toY: data[index][0],
+            color: teal,
+            width: 7,
+            borderRadius: BorderRadius.circular(4),
+          ),
           BarChartRodData(
-              toY: data[index][1],
-              color: pink,
-              width: 7,
-              borderRadius: BorderRadius.circular(4)),
+            toY: data[index][1],
+            color: pink,
+            width: 7,
+            borderRadius: BorderRadius.circular(4),
+          ),
         ],
         barsSpace: 4,
       );
     });
+
+    return Container(
+      padding: EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Color(0xFF1C2331),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Body Composition Overview in Kg",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          SizedBox(height: 16),
+          SizedBox(
+            height: 250,
+            child: BarChart(
+              BarChartData(
+                maxY: 80,
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 5,
+                      getTitlesWidget: (value, meta) {
+                        if (value % 5 != 0) return Container();
+                        return Text('${value.toStringAsFixed(0)}',
+                            style: TextStyle(color: Colors.grey[400], fontSize: 12));
+                      },
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                barGroups: barGroups,
+                borderData: FlBorderData(show: false),
+                gridData: FlGridData(show: false),
+              ),
+            ),
+          ),
+          SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.square, color: teal, size: 16),
+              SizedBox(width: 4),
+              Text("Muscle Mass", style: TextStyle(color: Colors.white)),
+              SizedBox(width: 16),
+              Icon(Icons.square, color: pink, size: 16),
+              SizedBox(width: 4),
+              Text("Fat Mass", style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

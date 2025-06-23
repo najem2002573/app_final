@@ -249,7 +249,7 @@ void setTodayNutrients(Nutrients todays){
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
               children: [
-                _buildAnimatedMacroTile("Sugars", todayNutrients.getSugars().toString(), Colors.cyan,
+                _buildAnimatedMacroTile("Sugars", todayNutrients.getSugars().toStringAsFixed(1), Colors.cyan,
                     Icons.local_fire_department,todayNutrients.getSugars()/50),
                 _buildAnimatedMacroTile(
                     "Protein", todayNutrients.getproteins().toString(), Colors.red, Icons.egg,todayNutrients.protein/50),

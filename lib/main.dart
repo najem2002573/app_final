@@ -1,6 +1,7 @@
 
 import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
+import 'package:app/pages/workout.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
 import 'package:app/services/nutrients.dart';

@@ -421,6 +421,12 @@ Future<DocumentSnapshot> getLiftForStrength() async{
 
 
 
+
+
+//the workout function that views all workout list in listview and make it clickable 
+//to enter the workout info and click done
+
+
 Widget _buildWorkoutList(BuildContext context) {
   return FutureBuilder<DocumentSnapshot?>(
     future: getWorkoutForSelectedCategory(),
@@ -431,23 +437,87 @@ Widget _buildWorkoutList(BuildContext context) {
       if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
         return Center(child: Text("Please select a training category."));
       }
-
       Map<String, dynamic>? workoutData = snapshot.data?.data() as Map<String, dynamic>?;
-
       if (workoutData == null) {
         return Text("Workout data not found.");
       }
-
       return Column(
         children: [
           Text("Plan Name: ${workoutData["name"]}", style: TextStyle(fontSize: 20)),
           Text("Duration: ${workoutData["duration"]} mins"),
-          ...workoutData["exercises"].map<Widget>((exercise) => ListTile(title: Text(exercise))).toList(),
+          ...workoutData["exercises"]
+              .map<Widget>((exercise) => GestureDetector(
+                    onTap: () => _showExerciseDialog(context, exercise),
+                    child: Container(
+                      margin: EdgeInsets.symmetric(vertical: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        boxShadow: [BoxShadow(
+                          color: Colors.grey.withValues(alpha: 0.5),
+                          spreadRadius: 5,
+                          blurRadius: 7,
+                          offset: Offset(0, 3), // changes position of shadow
+                        ),],
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color.fromARGB(255, 176, 176, 176), width: 1.2),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.fitness_center, color: Colors.deepPurple),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              exercise,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ))
+              .toList(),
         ],
       );
     },
   );
 }
+
+void _showExerciseDialog(BuildContext context, String exercise) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Exercise Detail"),
+        content: Text("Details for: $exercise"),
+        actions: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              FloatingActionButton(onPressed: (){},child: Text("Done"),),
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          )
+          
+        ],
+      );
+    },
+  );
+}
+
+
+
+
+
 
   Widget _buildBottomNavBar() {
     return Container(
