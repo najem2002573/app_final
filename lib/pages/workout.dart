@@ -55,6 +55,10 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
   }
 }
 
+
+/////////////   THE MOCK DATA ////////////////////////
+///
+/*
   final List<Map<String, dynamic>> workoutList = [
     {
       "title": "Chest Strength Training",
@@ -106,17 +110,21 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
           "https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2019/04/triceps-pushup-lean-muscular.jpg?w=940&h=529&crop=1&quality=86&strip=all"
     },
   ];
+*/
 
 
 
 
+
+// this widgets is the main and it calls the build of all this page elements, like the welcome 
+////message and the category builder and daily plan card and the workout list that is imported from firebase
   @override
   Widget build(BuildContext context) {
     
     print("the very first selected category of page load is : $selectedCategory");
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(),//to create the custom app bar
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
@@ -140,6 +148,9 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
     );
   }
 
+
+
+//the widget is an app bar
   AppBar _buildAppBar() {
     return AppBar(
       backgroundColor: Colors.teal.shade300,
@@ -159,6 +170,10 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
     );
   }
 
+
+
+
+/////////////////////////////////////////////    THE WOELCOME MESSAGE 
   Widget _buildWelcomeMessage() {
     return Row(
       children: [
@@ -178,87 +193,24 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
     );
   }
 
-  Widget _buildCalendarWidget() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back_ios),
-              onPressed: () {
-                setState(() {
-                  _focusedDay =
-                      DateTime(_focusedDay.year, _focusedDay.month - 1);
-                });
-              },
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.pink.shade100,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                DateFormat('MMMM yyyy').format(_focusedDay),
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.arrow_forward_ios),
-              onPressed: () {
-                setState(() {
-                  _focusedDay =
-                      DateTime(_focusedDay.year, _focusedDay.month + 1);
-                });
-              },
-            ),
-          ],
-        ),
-        TableCalendar(
-          firstDay: DateTime.utc(2020, 1, 1),
-          lastDay: DateTime.utc(2030, 12, 31),
-          focusedDay: _focusedDay,
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-          },
-          headerVisible: false,
-          calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(
-                color: Colors.pink.shade100, shape: BoxShape.circle),
-            selectedDecoration:
-                BoxDecoration(color: Colors.pink, shape: BoxShape.circle),
-            weekendTextStyle: TextStyle(color: Colors.redAccent),
-          ),
-          daysOfWeekStyle: DaysOfWeekStyle(
-            weekdayStyle:
-                TextStyle(color: Colors.grey[800], fontWeight: FontWeight.bold),
-            weekendStyle:
-                TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
-          ),
-          calendarFormat: CalendarFormat.week,
-          startingDayOfWeek: StartingDayOfWeek.sunday,
-          onPageChanged: (focusedDay) => _focusedDay = focusedDay,
-        ),
-      ],
-    );
-  }
 
+
+//////////////////////////////////////////////  THE BUILD CATEGORY
   Widget _buildCategorySelection() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildCategoryItem("Cardio\n ", FontAwesomeIcons.running),
+        _buildCategoryItem("Cardio\n ", FontAwesomeIcons.personRunning),
         _buildCategoryItem("Lift for\nStrength", FontAwesomeIcons.dumbbell),
         _buildCategoryItem("Keep\nfit", FontAwesomeIcons.spa),
       ],
     );
   }
 
+
+
+
+//THE ITEM FOR THE CATEGORY 
   Widget _buildCategoryItem(String title, IconData icon) {
    
     bool isSelected = selectedCategory == title;
@@ -268,8 +220,7 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
         onTap: () {
           setState(() {
             selectedCategory = title;
-            
-        
+            // IF A CATEGORY IS SELECTED  THEN THE CHOOSEN TITLE WILL BE THE CATERGOTY TITLE
           });
         },
         child: Container(
@@ -278,7 +229,7 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
             color: isSelected ? Colors.teal.shade100 : Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isSelected
-                ? [BoxShadow(color: Colors.red.withOpacity(0.3), blurRadius: 4)]
+                ? [BoxShadow(color: Colors.red.withValues(), blurRadius: 4)]
                 : [],
           ),
           child: Column(
@@ -302,6 +253,9 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
 
 
 
+
+//////////////////////////////////////////  THE DAILY PLAN CARD 
+///THIS ONE HAS THE ADVANCEMENT IN PERCENTAGE AND THE DONE / ALL WORKOUTS LIKE 1/7 (DONE 1 OF 7 WORKOUTS)
   Widget _buildDailyPlanCard() {
     return Container(
       padding: EdgeInsets.all(20),
@@ -412,6 +366,9 @@ Future<DocumentSnapshot> getKeepFit() async{
       .doc("46m5qqfM8BcpIRMu9Yl0").get(); // Plan data as a Map
 }
 
+
+
+//HERE ARE FEW DOCS THAT CAN BE CHOOSEN FROM , WE PUT IT IN LIST AND THEN FOR EACH DAY WE CHOOSE RANDOMLY
 Future<DocumentSnapshot> getLiftForStrength() async{
     return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
       .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
@@ -487,6 +444,10 @@ Widget _buildWorkoutList(BuildContext context) {
   );
 }
 
+
+
+
+//WHEN CLICKING A WORKOUT A DIALOG THIS DIALOG WILL POP 
 void _showExerciseDialog(BuildContext context, String exercise) {
   showDialog(
     context: context,
@@ -516,50 +477,4 @@ void _showExerciseDialog(BuildContext context, String exercise) {
 
 
 
-
-
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 10,
-            offset: Offset(0, -3),
-          )
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            // Update state here as needed
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.deepPurple,
-          unselectedItemColor: Colors.grey,
-          backgroundColor: Colors.white,
-          selectedFontSize: 14,
-          unselectedFontSize: 12,
-          elevation: 10,
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.home_outlined), label: "Home"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.favorite_border), label: "Favorites"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.bar_chart_outlined), label: "Activity"),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.settings_outlined), label: "Settings"),
-          ],
-        ),
-      ),
-    );
-  }
 }
