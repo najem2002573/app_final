@@ -1,70 +1,15 @@
 import 'package:app/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 import 'package:hive/hive.dart';
-import 'package:workmanager/workmanager.dart';
+
 
 class ReminderPage extends StatefulWidget {
   @override
   _ReminderPageState createState() => _ReminderPageState();
 }
 
-  /// Callback function for scheduled reminders
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    // Ensure the background isolate is properly initialized.
-    WidgetsFlutterBinding.ensureInitialized();
-    
-    // Create a new instance of FlutterLocalNotificationsPlugin in this isolate.
-    final FlutterLocalNotificationsPlugin localNotificationsPlugin =
-        FlutterLocalNotificationsPlugin();
-
-    // Initialize notifications.
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-    );
-    await localNotificationsPlugin.initialize(initializationSettings);
-
-    // Explicitly create the notification channel.
-    final androidImpl = localNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-    await androidImpl?.createNotificationChannel(
-      const AndroidNotificationChannel(
-        'reminder_channel', // Channel ID.
-        'Reminder Notifications', // Channel Name.
-        description: 'Channel for reminder notifications', // Channel description.
-        importance: Importance.max,
-      ),
-    );
-
-    // Define the notification details.
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'reminder_channel', // Channel ID.
-      'Reminder Notifications', // Channel name.
-      channelDescription: 'Channel for reminder notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    // Show the notification.
-    await localNotificationsPlugin.show(
-      0, // Notification ID.
-      'Reminder',
-      'This is your scheduled reminder!',
-      platformChannelSpecifics,
-    );
-
-    print("Reminder triggered at ${DateTime.now()}!");
-    return Future.value(true);
-  });
-}
 
 
 class _ReminderPageState extends State<ReminderPage> {
@@ -80,7 +25,7 @@ class _ReminderPageState extends State<ReminderPage> {
   void initState() {
     super.initState();
     _initStorage();
-    _initWorkManager();
+   
   }
 
   /// Initialize Hive for local storage
@@ -95,13 +40,7 @@ class _ReminderPageState extends State<ReminderPage> {
   });
 }
 
-  /// Initialize WorkManager for background notifications
-  void _initWorkManager() {
-    Workmanager().initialize(
-      callbackDispatcher,
-      isInDebugMode: true,
-    );
-  }
+
 
 
 
@@ -118,22 +57,14 @@ class _ReminderPageState extends State<ReminderPage> {
   scheduledTime = scheduledTime.add(Duration(days: 1));
 }
 
-Workmanager().registerOneOffTask(
-  "reminder_task",
-  "Show Reminder",
-  initialDelay: scheduledTime.difference(now),
-);
+
 
 
    void scheduleReminder() {
   final now = DateTime.now();
   final scheduledTime = DateTime(now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
 
-  Workmanager().registerOneOffTask(
-    "reminder_task",
-    "Show Reminder",
-    initialDelay: scheduledTime.difference(now),
-  );
+
    }}
 
 

@@ -2,8 +2,8 @@ import 'package:app/services/manager.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class FitnessDashboardScreen extends StatefulWidget {
   @override
@@ -19,10 +19,15 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
   DateTime? _selectedDay;
   
 
+  //the done workouts are stored in a set
+  Set<String> completedExercises = {};
+
  @override
 void initState() {
   super.initState();
   this.selectedCategory="";
+  loadCompletedWorkouts();
+  
   
 /*
 if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
@@ -36,7 +41,49 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
   print("🔁 Initial category based on goal: $selectedCategory");
 
 }
-  
+
+  //load the data and safely (reset if its a new day)
+  Future<void> loadCompletedWorkouts() async {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) return;
+
+  final docRef = FirebaseFirestore.instance
+      .collection('finishedWorkouts')
+      .doc(userId);
+  final docSnap = await docRef.get();
+
+  final today = DateTime.now().toIso8601String().split("T").first;
+  final data = docSnap.data();
+  final savedDate = data?['lastSaved'];
+
+  if (savedDate != today) {
+    // 🧹 New day detected — reset workouts
+    await docRef.set({
+      'completed': [],
+      'lastSaved': today,
+      'percentage': 0.0
+    }, SetOptions(merge: true));
+
+    setState(() {
+      completedExercises.clear();
+
+    });
+
+    print("🌅 Reset Firebase for new day");
+  } else {
+    // ✅ Same day — load completed workouts
+    List<String> loaded = List<String>.from(data?['completed'] ?? []);
+    double progress = data?['percentage']?.toDouble() ?? 0.0;
+
+    setState(() {
+      completedExercises = loaded.toSet();
+    });
+
+    print("🎯 Loaded workouts: $loaded | Progress: ${progress.toStringAsFixed(1)}%");
+  }
+}
+
+
 
 
 
@@ -298,7 +345,7 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
                 SizedBox(height: 8),
                 RichText(
                   text: TextSpan(
-                    text: "1/7 ",
+                    text: "${this.completedExercises.length}/7 Complete",
                     style: TextStyle(
                         color: Colors.deepPurple, fontWeight: FontWeight.bold),
                     children: [
@@ -315,7 +362,7 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
             ),
           ),
           TweenAnimationBuilder<double>(
-            tween: Tween<double>(begin: 0, end: 0.25),
+            tween: Tween<double>(begin: 0, end: this.completedExercises.length/7),
             duration: Duration(milliseconds: 800),
             builder: (context, value, child) {
               return Stack(
@@ -370,8 +417,8 @@ Future<DocumentSnapshot> getKeepFit() async{
 
 //HERE ARE FEW DOCS THAT CAN BE CHOOSEN FROM , WE PUT IT IN LIST AND THEN FOR EACH DAY WE CHOOSE RANDOMLY
 Future<DocumentSnapshot> getLiftForStrength() async{
-    return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
-      .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
+    return FirebaseFirestore.instance.collection("workouts").doc("lift_for_strength").collection("plans")
+      .doc("3UZlfubyMy2o9zGGc9Ab").get(); // Plan data as a Map
 }
 
 
@@ -449,32 +496,75 @@ Widget _buildWorkoutList(BuildContext context) {
 
 //WHEN CLICKING A WORKOUT A DIALOG THIS DIALOG WILL POP 
 void _showExerciseDialog(BuildContext context, String exercise) {
+
+
+  // 🧠 Preprocess the exercise name to match your asset file format
+  String cleanedName = exercise.toLowerCase().replaceAll(' ', '');
+  // 🎯 Build full path using category and file name
+  String folderName = getCleanCategoryPath(selectedCategory);
+  String imagePath = 'assets/gifs/$folderName/$cleanedName.gif';
+
+
+
+  print("the image path is this one: $imagePath");
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         title: Text("Exercise Detail"),
-        content: Text("Details for: $exercise"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 📸 Display the exercise GIF
+            Image.asset(  imagePath,
+  errorBuilder: (context, error, stackTrace) {
+    return Text('Image not found: $imagePath');
+  },
+),
+
+            SizedBox(height: 10),
+            Text("Details for: $exercise"),
+          ],
+        ),
         actions: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              FloatingActionButton(onPressed: (){},child: Text("Done"),),
+              FloatingActionButton(
+                onPressed: () {
+                  // handle "done" logic here, if clicked then increment this worjout and pop
+                  completedExercises.add(exercise);
+                  manager.trackWorkout(exercise); //in manager we sync progress with firebase
+                  Navigator.of(context).pop();
+                  setState(() {}); // refresh UI
+                },
+                child: Text("Done"),
+              ),
               TextButton(
                 child: Text("Close"),
                 onPressed: () {
+                  
+                  //just pop 
                   Navigator.of(context).pop();
+                  
                 },
               ),
             ],
-          )
-          
+          ),
         ],
       );
     },
   );
+
+
 }
 
+
+
+//the category folder, to get the image folder location
+String getCleanCategoryPath(String category) {
+  return category.toLowerCase().replaceAll('\n', '').replaceAll(' ', '');
+}
 
 
 }

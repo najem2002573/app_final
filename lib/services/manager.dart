@@ -1,5 +1,3 @@
-
-import 'package:app/pages/food.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/gym.dart';
 import 'package:app/services/nutrients.dart';
@@ -7,16 +5,14 @@ import 'package:app/services/userDATA.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';  // For File
 import 'package:image_picker/image_picker.dart';  // For ImagePicker and XFile
 import 'dart:typed_data';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 
 
 
@@ -40,6 +36,9 @@ class BackendManager
 
   bool isNew=true;
 
+
+  //for the done workouts percentage
+  double progresspercent=0;
   
 
   
@@ -190,9 +189,7 @@ Future<void> loadKeys()async{
 
   this.aiKey=openAiKey;
   this.GpsKey=googleApiKey;
-    print("Google API Key: $googleApiKey");
-    print("OpenAI Key: $openAiKey");
-  
+
 
 }
 
@@ -670,7 +667,7 @@ Future<void> updateUserInDatabase(AppUser user) async {
 // saving user data
 
 int age=0; String goal=""; String gender=""; double HEIGHT=0; double WEIGHT=0;String activity_level="";
-String uid="";
+String uid=FirebaseAuth.instance.currentUser?.uid ?? '';
 
 Map<String,dynamic> getUserDat(){
   Map<String,dynamic> userDat={
@@ -893,8 +890,6 @@ Future<void> loadUserData() async {
   final userBox = Hive.box<Userdata>('userData');
   final data = userBox.get("userdata");
 
-  print("from userdata hive the age is : ${data!.age} and his weight is : ${data.weight}");
-
   if (data != null) {
     // 🔹 Load from Hive
     print("Loaded from Hive");
@@ -910,6 +905,10 @@ Future<void> loadUserData() async {
   } else {
     // 🔸 Load from Firebase
     try {
+      if (this.uid == null || this.uid.trim().isEmpty) {
+      print("❌ UID is empty. Cannot fetch nutrients.");
+      return;
+}
       final doc = await FirebaseFirestore.instance.collection('users').doc(this.uid).get();
       if (doc.exists) {
         final firebaseData = doc.data();
@@ -940,6 +939,53 @@ print("the loaded user data");
     }
   }
 }
+
+
+
+
+Future<void> trackWorkout(String name) async {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  const maxWorkouts = 7;
+
+  if (userId == null || name.isEmpty) return;
+
+  final docRef = FirebaseFirestore.instance
+      .collection('finishedWorkouts')
+      .doc(userId);
+
+  final snapshot = await docRef.get();
+  List<String> completed = [];
+
+  if (snapshot.exists) {
+    completed = List<String>.from(snapshot.data()?['completed'] ?? []);
+  }
+
+  if (completed.contains(name)) {
+    print("⚠️ Already done '$name'. No update.");
+    return;
+  }
+
+  if (completed.length >= maxWorkouts) {
+    print("⛔ Max 7 workouts reached. Chill time!");
+    return;
+  }
+
+  completed.add(name);
+  final progress = completed.length / maxWorkouts * 100;
+  this.progresspercent = progress;
+
+  final today = DateTime.now().toIso8601String().split("T").first;
+
+  await docRef.set({
+    'completed': completed,
+    'percentage': progress,
+    'lastSaved': today // 🕒 Added date tracking
+  }, SetOptions(merge: true)); // ✅ merge so other data stays intact
+
+  print("✅ Saved '$name'. Progress: ${progress.toStringAsFixed(1)}%, Date: $today");
+}
+
+
 
 
 
