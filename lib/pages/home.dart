@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:app/pages/gymspage.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
-import 'package:app/services/nutrients.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:app/pages/food.dart';
-import 'package:app/pages/health.dart'; // Ensure this is the correct path
-import 'package:app/pages/workout.dart'; // Ensure this is the correct path
-import 'package:app/pages/calories.dart'; // Ensure this is the correct path
-import 'package:app/pages/settings.dart'; // Ensure this is the correct path
+import 'package:app/pages/health.dart'; 
+import 'package:app/pages/workout.dart'; 
+import 'package:app/pages/settings.dart'; 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive/hive.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -34,6 +33,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // TODO: implement initState
     manager.loadUserData();
+    
     
   }
 
@@ -126,11 +126,14 @@ class HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<HomePageContent> {
-  final List<double> weeklyStats = [3, 4, 2, 5, 8, 5, 3];
+  //its a moch data, the real var is defined near the function down, (fetch weekly stats)
+  //final List<double> weeklyStats = [3, 4, 2, 5, 8, 5, 3];
   String profileImagePAth="";
   double probability=0;
 
  
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -138,7 +141,14 @@ class _HomePageContentState extends State<HomePageContent> {
     Box profileImage=Hive.box('profileimageBox');
     profileImagePAth=profileImage.get('profileimage') ?? "";
     this.probability=manager.successProba;
+    fetchWeeklyStats();
   }
+
+
+
+
+
+  
   @override
   Widget build(BuildContext context) {
     BackendManager manager=BackendManager();
@@ -509,90 +519,112 @@ class _HomePageContentState extends State<HomePageContent> {
     );
   }
 
+
+
+
+
+//first bring the data for the weekley stats
+List<double> weeklyStats = List.filled(7, 0.0); // Sun to Sat
+
+Future<void> fetchWeeklyStats() async {
+  final userId = FirebaseAuth.instance.currentUser?.uid;
+  if (userId == null) return;
+
+  final docSnap = await FirebaseFirestore.instance
+      .collection("weeklyProgress")
+      .doc(userId)
+      .get();
+
+  final data = docSnap.data() ?? {};
+
+  List<String> keys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  for (int i = 0; i < 7; i++) {
+    weeklyStats[i] = (data[keys[i]] ?? 0).toDouble();
+  }
+
+  setState(() {}); // Refresh graph
+}
+
+//the weekly stats graph , it has each day workout number , it uses barchart to fill the graph
   Widget _buildWeeklyStats() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Weekly Stats",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        "Weekly Stats",
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 10),
+      Container(
+        height: 170,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
         ),
-        const SizedBox(height: 10),
-        Container(
-          height: 170,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: BarChart(
-            BarChartData(
-              barGroups: List.generate(
-                  7, (index) => _buildBar(weeklyStats[index], index == 4)),
-              borderData: FlBorderData(show: false),
-              gridData: FlGridData(show: false),
-              titlesData: FlTitlesData(
-                leftTitles:
-                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      List<String> days = [
-                        "Mon",
-                        "Tue",
-                        "Wed",
-                        "Thu",
-                        "Fri",
-                        "Sat",
-                        "Sun"
-                      ];
-                      return Padding(
-                        padding: EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          days[value.toInt()],
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87),
+        child: BarChart(
+          BarChartData(
+            barGroups: List.generate(7, (i) =>
+                _buildBar(weeklyStats[i], i == DateTime.now().weekday % 7, i)),
+            borderData: FlBorderData(show: false),
+            gridData: FlGridData(show: false),
+            titlesData: FlTitlesData(
+              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  getTitlesWidget: (value, meta) {
+                    List<String> days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        days[value.toInt()],
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  BarChartGroupData _buildBar(double value, bool highlight) {
-    return BarChartGroupData(
-      x: weeklyStats.indexOf(value),
-      barRods: [
-        BarChartRodData(
-          toY: value,
-          gradient: LinearGradient(
-            colors: highlight
-                ? [Colors.greenAccent, Colors.blueAccent]
-                : [Colors.greenAccent, Colors.purple.shade300],
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-          ),
-          width: 20,
-          borderRadius: BorderRadius.circular(6),
-          backDrawRodData: BackgroundBarChartRodData(
-            show: true,
-            toY: 10, // Max Value
-            color: Colors.grey.shade200,
-          ),
-        )
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
+
+BarChartGroupData _buildBar(double value, bool highlight, int index) {
+  return BarChartGroupData(
+    x: index,
+    barRods: [
+      BarChartRodData(
+        toY: value,
+        gradient: LinearGradient(
+          colors: highlight
+              ? [Colors.greenAccent, Colors.blueAccent]
+              : [Colors.greenAccent, Colors.purple.shade300],
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+        ),
+        width: 20,
+        borderRadius: BorderRadius.circular(6),
+        backDrawRodData: BackgroundBarChartRodData(
+          show: true,
+          toY: 10,
+          color: Colors.grey.shade200,
+        ),
+      )
+    ],
+  );
+}
+
+
+
+
 
 Widget _buildMotivationalMusic() {
   
@@ -718,4 +750,4 @@ Widget _buildMotivationalMusic() {
       ),
     ],
   );
-}
+}}

@@ -39,48 +39,52 @@ Future<void> initializeRemoteConfig() async {
 //to load all important things within an await func
 
 
-Future<bool> prepareAppData() async{
+                                          Future<bool> prepareAppData() async{
 
-      //Starting the firebase when the app launches
-  await Firebase.initializeApp().then((_){
-    print("its on!!!!");
-  }).catchError((e){
-    print("init the firebase not successfull");
-   
-  }); // Initialize Firebase
-
-
-  //get the api keys from the firebase remote config
-  await initializeRemoteConfig(); // init the remote the stores api keys
-
-  //init the hive (local stroage)
-   await Hive.initFlutter();
-
-  //register all them adapters
-  // Register adapter (this is auto-generated)
-  Hive.registerAdapter(AppUserAdapter());
-  Hive.registerAdapter(NutrientsAdapter());
-  Hive.registerAdapter(UserdataAdapter());
+                                                //Starting the firebase when the app launches
+                                            await Firebase.initializeApp().then((_){
+                                              print("its on!!!!");
+                                            }).catchError((e){
+                                              print("init the firebase not successfull");
+                                            
+                                            }); // Initialize Firebase
 
 
+                                            //get the api keys from the firebase remote config
+                                            await initializeRemoteConfig(); // init the remote the stores api keys
 
-  //open the boxes of local storages
-  await Hive.openBox<AppUser>('userBox');
-  await Hive.openBox<Nutrients>('nutrientsBox');
-  await Hive.openBox<Userdata>('userData');
-  await Hive.openBox('profileimageBox');
+                                            //init the hive (local stroage)
+                                            await Hive.initFlutter();
+
+                                            //register all them adapters
+                                            // Register adapter (this is auto-generated)
+                                            Hive.registerAdapter(AppUserAdapter());
+                                            Hive.registerAdapter(NutrientsAdapter());
+                                            Hive.registerAdapter(UserdataAdapter());
 
 
-  print("done oopenening all boxes in prep data");
 
-  //prevent nulls 
-  final firebaseUser = FirebaseAuth.instance.currentUser;
-  if (firebaseUser != null && firebaseUser.uid.isNotEmpty) {
-    manager.uid = firebaseUser.uid;
-    print("✅ UID set: ${manager.uid}");
-  } else {
-    print("❌ No user signed in. UID not set.");
-}
+                                            //open the boxes of local storages
+                                            await Hive.openBox<AppUser>('userBox');
+                                            await Hive.openBox<Nutrients>('nutrientsBox');
+                                            await Hive.openBox<Userdata>('userData');
+                                            await Hive.openBox('profileimageBox');
+
+
+                                            print("done oopenening all boxes in prep data");
+
+                                            //prevent nulls 
+                                            final firebaseUser = FirebaseAuth.instance.currentUser;
+                                            if (firebaseUser != null && firebaseUser.uid.isNotEmpty) {
+                                              manager.uid = firebaseUser.uid;
+                                              print("✅ UID set: ${manager.uid}");
+                                            } else {
+                                              print("❌ No user signed in. UID not set.");
+                                          }
+
+
+
+                                          
 
   print("done getting the instance of the current user");
 

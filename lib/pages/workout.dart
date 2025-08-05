@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+ import 'package:intl/intl.dart';
 
 class FitnessDashboardScreen extends StatefulWidget {
   @override
@@ -43,30 +43,34 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
 }
 
   //load the data and safely (reset if its a new day)
-  Future<void> loadCompletedWorkouts() async {
+Future<void> loadCompletedWorkouts() async {
   final userId = FirebaseAuth.instance.currentUser?.uid;
   if (userId == null) return;
 
-  final docRef = FirebaseFirestore.instance
-      .collection('finishedWorkouts')
-      .doc(userId);
+  final docRef = FirebaseFirestore.instance.collection('finishedWorkouts').doc(userId);
   final docSnap = await docRef.get();
 
-  final today = DateTime.now().toIso8601String().split("T").first;
+  final today = DateTime.now();
+  final todayStr = today.toIso8601String().split("T").first;
+  final dayLabel = DateFormat('EEE').format(today).toLowerCase(); // e.g., "mon"
+
   final data = docSnap.data();
   final savedDate = data?['lastSaved'];
 
-  if (savedDate != today) {
+
+  if (savedDate != todayStr) {
     // 🧹 New day detected — reset workouts
+     updateDayProgress(userId, dayLabel, completedExercises.length.toDouble());
+
     await docRef.set({
       'completed': [],
-      'lastSaved': today,
+      'lastSaved': todayStr,
       'percentage': 0.0
     }, SetOptions(merge: true));
 
+    FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({"lastSaved": dayLabel});
     setState(() {
       completedExercises.clear();
-
     });
 
     print("🌅 Reset Firebase for new day");
@@ -83,6 +87,14 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
   }
 }
 
+
+
+//when finishing a day all workouts done will be saved to firebase, example: if today is tuesday then tue=7 workouts 
+void updateDayProgress(String userId, String day, double value) {
+  final ref = FirebaseFirestore.instance.collection("weeklyProgress").doc(userId);
+
+  ref.set({day: value}, SetOptions(merge: true));
+}
 
 
 
