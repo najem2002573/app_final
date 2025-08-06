@@ -42,7 +42,12 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
 
 }
 
-  //load the data and safely (reset if its a new day)
+
+
+
+
+//load the data and safely (reset if its a new day)
+//important: if its a new day then ulpload the prev day progress and then reset all for the user to start the new day workout
 Future<void> loadCompletedWorkouts() async {
   final userId = FirebaseAuth.instance.currentUser?.uid;
   if (userId == null) return;
@@ -57,42 +62,36 @@ Future<void> loadCompletedWorkouts() async {
   final data = docSnap.data();
   final savedDate = data?['lastSaved'];
 
+  // Load previous day's completed workouts
+  List<String> loaded = List<String>.from(data?['completed'] ?? []);
+  completedExercises = loaded.toSet();
 
   if (savedDate != todayStr) {
-    // 🧹 New day detected — reset workouts
-     updateDayProgress(userId, dayLabel, completedExercises.length.toDouble());
+    // 🧹 New day detected — save previous day's progress first
+    double progress = completedExercises.length.toDouble();
+    await FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({
+      dayLabel: progress,
+      'lastSaved': dayLabel
+    }, SetOptions(merge: true));
 
+    // Then reset for new day
     await docRef.set({
       'completed': [],
       'lastSaved': todayStr,
       'percentage': 0.0
     }, SetOptions(merge: true));
 
-    FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({"lastSaved": dayLabel});
     setState(() {
       completedExercises.clear();
     });
 
-    print("🌅 Reset Firebase for new day");
-  } else {
-    // ✅ Same day — load completed workouts
-    List<String> loaded = List<String>.from(data?['completed'] ?? []);
-    double progress = data?['percentage']?.toDouble() ?? 0.0;
-
-    setState(() {
-      completedExercises = loaded.toSet();
-    });
-
-    print("🎯 Loaded workouts: $loaded | Progress: ${progress.toStringAsFixed(1)}%");
+    print("🌅 Reset Firebase for new day and saved previous progress");
   }
 }
-
-
 
 //when finishing a day all workouts done will be saved to firebase, example: if today is tuesday then tue=7 workouts 
 void updateDayProgress(String userId, String day, double value) {
   final ref = FirebaseFirestore.instance.collection("weeklyProgress").doc(userId);
-
   ref.set({day: value}, SetOptions(merge: true));
 }
 
@@ -114,62 +113,6 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
   }
 }
 
-
-/////////////   THE MOCK DATA ////////////////////////
-///
-/*
-  final List<Map<String, dynamic>> workoutList = [
-    {
-      "title": "Chest Strength Training",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "953 kcal",
-      "image":
-          "https://cdn.muscleandstrength.com/sites/default/files/field/feature-image/workout/10mass_feature.jpg"
-    },
-    {
-      "title": "Power Leg Fire Sessions",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "351 kcal",
-      "image":
-          "https://shop.bodybuilding.com/cdn/shop/articles/leg-workouts-for-men-get-thicker-quads-glutes-and-hams-986493.jpg?v=1737673309&width=900"
-    },
-    {
-      "title": "Back Training",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "673 kcal",
-      "image":
-          "https://cdn.shopify.com/s/files/1/0816/2082/8435/files/Back_Cover_1024x1024.jpg?v=1707160835"
-    },
-    {
-      "title": "Biceps Training",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "673 kcal",
-      "image":
-          "https://shop.bodybuilding.com/cdn/shop/articles/arm-workouts-for-men-to-build-bigger-biceps-822489.jpg?v=1731882647&width=900"
-    },
-    {
-      "title": "Triceps Training",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "673 kcal",
-      "image":
-          "https://www.kettlebellkings.com/cdn/shop/articles/9ef303d8aa70a7750d93df68c947b645_6ad0537f-1b04-42d1-8131-a630f2cd5dc6.jpg?v=1739267183&width=900"
-    },
-    {
-      "title": "Shoulder Training",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "673 kcal",
-      "image":
-          "https://i0.wp.com/www.strengthlog.com/wp-content/uploads/2023/05/shutterstock_336330470-scaled.jpg?resize=2048%2C1365&ssl=1"
-    },
-    {
-      "title": "Full Body Power Workout",
-      "duration": "1 Hour, 25 Minutes",
-      "calories": "673 kcal",
-      "image":
-          "https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2019/04/triceps-pushup-lean-muscular.jpg?w=940&h=529&crop=1&quality=86&strip=all"
-    },
-  ];
-*/
 
 
 
