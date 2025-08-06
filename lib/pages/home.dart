@@ -13,6 +13,7 @@ import 'package:app/pages/settings.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:hive/hive.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 //last version
 class HomePage extends StatefulWidget {
@@ -236,16 +237,17 @@ class _HomePageContentState extends State<HomePageContent> {
         Row(
           children: [
             _buildPlanCardfood(
-                "Food", "1832 kcal", Icons.restaurant, Colors.white, context,
+                "Food", "${manager.todayNutrints.calories.toStringAsFixed(0)} cals ", Icons.restaurant, Colors.white, context,
                 border: true),
-            const SizedBox(width: 10),
+            Expanded(child: const SizedBox(width: 10)),
+            /*
             Expanded(
               child: ElevatedButton(
                 onPressed: () async {
                   //manager.testHive();
                   //test the uid
-                  print("all plans from cardio are: ");
-                  print(FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans").doc("peLX0fXhGs8KScLIiOhG").get().toString());
+                  //print("all plans from cardio are: ");
+                //  print(FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans").doc("peLX0fXhGs8KScLIiOhG").get().toString());
 
                   
                 },
@@ -256,6 +258,7 @@ class _HomePageContentState extends State<HomePageContent> {
                 child: const Text("Let's Go"),
               ),
             ),
+            */
           ],
         ),
       ],
@@ -629,31 +632,31 @@ BarChartGroupData _buildBar(double value, bool highlight, int index) {
 Widget _buildMotivationalMusic() {
   
   List<Map<String, String>> musicList = [
-    {
-      "title": "Eye of the Tiger",
-      "artist": "Survivor",
-      "image":
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTl7kztrZfASzd0Wqc-yEPLXYvn1i9Lq2eFsA&s"
-    },
-    {
-      "title": "Stronger",
-      "artist": "Kanye West",
-      "image":
-          "https://i.discogs.com/7HgqlxY5-5Z-JE8mDWXCoUWYB08NW0rj3IdrnDOSs8o/rs:fit/g:sm/q:90/h:526/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU3NjU1/ODQtMTQ5ODMwMjAx/Ny03ODY2LmpwZWc.jpeg"
-    },
-    {
-      "title": "Lose Yourself",
-      "artist": "Eminem",
-      "image":
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5m80Y6CLaXt4CvNTSvsMREuvrMV5AoAmLgw&s"
-    },
-    {
-      "title": "Till I Collapse",
-      "artist": "Eminem ft. Nate Dogg",
-      "image":
-          "https://i1.sndcdn.com/artworks-000161139232-rkikne-t1080x1080.jpg"
-    },
-  ];
+  {
+    "title": "Eye of the Tiger",
+    "artist": "Survivor",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTl7kztrZfASzd0Wqc-yEPLXYvn1i9Lq2eFsA&s",
+    "url": "https://www.youtube.com/watch?v=btPJPFnesV4"
+  },
+  {
+    "title": "Stronger",
+    "artist": "Kanye West",
+    "image": "https://i.discogs.com/7HgqlxY5-5Z-JE8mDWXCoUWYB08NW0rj3IdrnDOSs8o/rs:fit/g:sm/q:90/h:526/w:600/czM6Ly9kaXNjb2dz/LWRhdGFiYXNlLWlt/YWdlcy9SLTU3NjU1/ODQtMTQ5ODMwMjAx/Ny03ODY2LmpwZWc.jpeg",
+    "url": "https://www.youtube.com/watch?v=PsO6ZnUZI0g"
+  },
+  {
+    "title": "Lose Yourself",
+    "artist": "Eminem",
+    "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5m80Y6CLaXt4CvNTSvsMREuvrMV5AoAmLgw&s",
+    "url": "https://www.youtube.com/watch?v=_Yhyp-_hX2s"
+  },
+  {
+    "title": "Till I Collapse",
+    "artist": "Eminem ft. Nate Dogg",
+    "image": "https://i1.sndcdn.com/artworks-000161139232-rkikne-t1080x1080.jpg",
+    "url": "https://www.youtube.com/watch?v=jW9j_3fyXiw"
+  },
+];
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -727,16 +730,20 @@ Widget _buildMotivationalMusic() {
                                 color: Colors.grey[600], fontSize: 13),
                           ),
                           SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Icon(Icons.play_circle_fill,
-                                  color: Colors.deepPurple, size: 24),
-                              SizedBox(width: 6),
-                              Text("Play",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.deepPurple)),
-                            ],
+                          InkWell(
+                            onTap: () async {
+                              final url = music["url"];
+                              if (url != null && await canLaunchUrl(Uri.parse(url))) {
+                                await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.play_circle_fill, color: Colors.deepPurple, size: 24),
+                                SizedBox(width: 6),
+                                Text("Play", style: TextStyle(fontWeight: FontWeight.w500, color: Colors.deepPurple)),
+                              ],
+                            ),
                           ),
                         ],
                       ),
