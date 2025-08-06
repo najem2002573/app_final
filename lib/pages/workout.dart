@@ -69,6 +69,8 @@ Future<void> loadCompletedWorkouts() async {
   if (savedDate != todayStr) {
     // 🧹 New day detected — save previous day's progress first
     double progress = completedExercises.length.toDouble();
+
+    //imediate save in the firebase
     await FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({
       dayLabel: progress,
       'lastSaved': dayLabel
@@ -89,11 +91,7 @@ Future<void> loadCompletedWorkouts() async {
   }
 }
 
-//when finishing a day all workouts done will be saved to firebase, example: if today is tuesday then tue=7 workouts 
-void updateDayProgress(String userId, String day, double value) {
-  final ref = FirebaseFirestore.instance.collection("weeklyProgress").doc(userId);
-  ref.set({day: value}, SetOptions(merge: true));
-}
+
 
 
 
