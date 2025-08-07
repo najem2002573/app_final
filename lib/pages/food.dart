@@ -458,7 +458,7 @@ void setTodayNutrients(Nutrients todays){
                 ),
               ),
               Text(" ML", style: TextStyle(color: Colors.grey.shade600)),
-              Text(" / ${totalMl.toInt()}ML",
+              Text(" / ${totalMl.toDouble()}ML",
                   style: TextStyle(color: Colors.grey.shade600)),
             ],
           ),
@@ -499,6 +499,9 @@ void setTodayNutrients(Nutrients todays){
       ),
     );
   }
+
+
+
 
   Widget buildMealTimeSuggestions() {
     final mealTimes = [

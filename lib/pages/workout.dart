@@ -60,7 +60,7 @@ Future<void> loadCompletedWorkouts() async {
   final dayLabel = DateFormat('EEE').format(today).toLowerCase(); // e.g., "mon"
 
   final data = docSnap.data();
-  final savedDate = data?['lastSaved'];
+  final savedDate = data?['lastSaved'];//the last saved date in the firebase
 
   // Load previous day's completed workouts
   List<String> loaded = List<String>.from(data?['completed'] ?? []);
