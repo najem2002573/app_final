@@ -149,12 +149,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 size: 16, color: Colors.grey.shade400)
             : null,
         onTap: () {
-          if (title == "Reminder") {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ReminderPage()),
-            );
-          }
+          
           if (title == "Calendar") {
             Navigator.push(
               context,

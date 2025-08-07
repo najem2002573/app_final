@@ -118,6 +118,9 @@ void loadNutrients() async {
 /// to set the nutrient . especially when starting the app 
 void setTodayNutrients(Nutrients todays){
   setState(() {
+  manager.todayNutrints=todays;
+  manager.uploadTodayNutrientsFirebase();
+  
   this.todayNutrients=todays;  
   });
   

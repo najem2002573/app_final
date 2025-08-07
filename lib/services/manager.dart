@@ -57,6 +57,11 @@ class BackendManager
     return this . username;
   }
 
+
+
+
+
+
   //creating a singelton to make all instances static and access real time  data vars 
   static final BackendManager _instance = BackendManager._internal();
   factory BackendManager() => _instance;
@@ -83,25 +88,28 @@ class BackendManager
 }
 
 
-//load the todayNutrients from the hive or if its not there get it from the firebase
+
+
+
+/// load the nutriets for today , if its a new day then reset it 
 Future<void> loadTodayNutrients() async {
-
   final box = await Hive.openBox<Nutrients>('nutrientsBox');
-  Nutrients? loaded=box.get('today');
+  Nutrients? loaded = box.get('today');
 
-  if (loaded!=null){// if local data exists
-  todayNutrints.protein = (loaded?.protein ?? 0.0).toDouble();
-  todayNutrints.carbs = (loaded?.carbs ?? 0.0).toDouble();
-  todayNutrints.fats = (loaded?.fats ?? 0.0).toDouble();
-  todayNutrints.sugars = (loaded?.sugars ?? 0.0).toDouble();
-  todayNutrints.calories = (loaded?.calories ?? 0.0).toDouble();
-  todayNutrints.waterGlasses = (loaded?.waterGlasses ?? 0.0).toInt();
-  
+  if (loaded != null) {
+    // Load from Hive
+    todayNutrints.protein = loaded.protein;
+    todayNutrints.carbs = loaded.carbs;
+    todayNutrints.fats = loaded.fats;
+    todayNutrints.sugars = loaded.sugars;
+    todayNutrints.calories = loaded.calories;
+    todayNutrints.waterGlasses = loaded.waterGlasses;
+    print("📦 Nutrients loaded from Hive.");
+    return;
   }
- else{ // or we load it from fireabse 
 
-    if(this.uid.isEmpty)
-    {
+  // If Hive is empty, load from Firebase
+  if (uid.isEmpty) {
     print("❌ UID is empty. Cannot fetch nutrients.");
     return;
   }
@@ -109,35 +117,64 @@ Future<void> loadTodayNutrients() async {
   try {
     final doc = await FirebaseFirestore.instance.collection('nutrients').doc(uid).get();
 
-    if (doc.exists) {
-      var data = doc.data() as Map<String, dynamic>;
-
-      
-        todayNutrints.calories=(data['calories'] ?? 0).toDouble();
-        todayNutrints.protein= (data['protein'] ?? 0).toDouble();
-        todayNutrints.carbs=(data['carbs'] ?? 0).toDouble();
-        todayNutrints.fats=(data['fats'] ?? 0).toDouble();
-        todayNutrints.fats=(data['sugars'] ?? 0).toDouble();
-        todayNutrints.fats=(data['water'] ?? 0).toDouble();
-
-      await box.put('today', todayNutrints);
-      print("✅ Nutrients fetched and stored in Hive.");
-    } else {
+    if (!doc.exists) {
       print("❌ No nutrients data found for user.");
+      return;
     }
+
+    final data = doc.data() as Map<String, dynamic>;
+    final Timestamp? firebaseTimestamp = data['date'] as Timestamp?;
+    final DateTime? firebaseDate = firebaseTimestamp?.toDate();
+    final DateTime today = DateTime.now();
+
+    final bool isSameDay = firebaseDate != null &&
+        firebaseDate.year == today.year &&
+        firebaseDate.month == today.month &&
+        firebaseDate.day == today.day;
+
+    if (!isSameDay) {
+      // Reset nutrients if Firebase date is old
+      print("📅 Firebase date is outdated. Resetting nutrients.");
+      todayNutrints = Nutrients();
+      await FirebaseFirestore.instance.collection('nutrients').doc(uid).set({
+        'calories': 0,
+        'protein': 0,
+        'carbs': 0,
+        'fats': 0,
+        'sugars': 0,
+        'water': 0,
+        'date': Timestamp.now(),
+      });
+      await box.delete('today'); // Clear Hive
+
+    } else {
+      // Load nutrients from Firebase
+      todayNutrints.calories = (data['calories'] ?? 0).toDouble();
+      todayNutrints.protein = (data['protein'] ?? 0).toDouble();
+      todayNutrints.carbs = (data['carbs'] ?? 0).toDouble();
+      todayNutrints.fats = (data['fats'] ?? 0).toDouble();
+      todayNutrints.sugars = (data['sugars'] ?? 0).toDouble();
+      todayNutrints.waterGlasses = (data['water'] ?? 0).toInt();
+      print("☁️ Nutrients loaded from Firebase.");
+    }
+
+    // Save to Hive
+    await box.put('today', todayNutrints);
+    print("✅ Nutrients saved to Hive.");
+
   } catch (e) {
     print("❌ Error fetching nutrients: $e");
   }
-
- }
-
-  }
+}
 
 
 
 
   
 
+
+
+// upload the nutrients in the firebase 
   Future<void> uploadTodayNutrientsFirebase()async{
     
     final user = FirebaseAuth.instance.currentUser;
@@ -168,6 +205,14 @@ Future<void> loadTodayNutrients() async {
 
 
   }
+
+
+
+
+
+
+
+
 
 //food part of backend
 //connect to local image model to detect food , then connect to open ai to get the nutrients
@@ -240,8 +285,13 @@ int getGoalIndex(String goalLabel) {/// for the ml model. get the goal in int.
 double successProba=0;
 
 
+
+
+
+//get the prediction for the user if he will achieve his desired goal by his data (weight heigh and bmi...)
+// its a backend api for prediction of the proba of success we used random forest 
 Future<dynamic> getPrediction() async {
-  final String apiUrl = "http://192.168.102.197:8000/predict_goal";
+  final String apiUrl = "http://192.168.68.113:8000/predict_goal";
   
   // Calculate BMI & gender formatting
   double bmi = WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100));
@@ -297,6 +347,10 @@ Future<dynamic> getPrediction() async {
 }
 
 
+
+
+
+/////// upload an image for the food model to detect the class like the image is classified as french fries
 Future<String> pickAndUploadImage() async {
   final picker = ImagePicker();
   final pickedFile = await picker.pickImage(source: ImageSource.gallery); // Or use .camera for camera
@@ -337,9 +391,9 @@ Future<String> pickAndUploadImage() async {
 
 
 
-//using custome image model to identify food
+//using custome image model to identify food, call api and give it the image and get its class (french fries)
 Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
-  final uri = Uri.parse('http://192.168.102.197:8000/predict_food/');
+  final uri = Uri.parse('http://192.168.68.113:8000/predict_food/');
   final request = http.MultipartRequest('POST', uri);
 
   // Add the image as a file
@@ -363,6 +417,9 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
 }
 
 
+
+
+/// give the image class to api of an ai and get the nutrients
  Future<Map?> getNutrients(String foodItem) async {
   // API key
   final String apiKey = aiKey; 
@@ -428,6 +485,8 @@ Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
   }
 }
 
+
+
 // Helper function to parse nutrient values from a string (removes the unit and converts to double)
 double _parseNutrient(String nutrient) {
   // Remove any non-numeric characters (like 'g') and parse the remaining value
@@ -463,7 +522,7 @@ double _parseNutrient(String nutrient) {
 //                                        THE GPS PART
 
 
-
+//get the location via google places, first request permission, 
 Future<Position?> getLocation() async{
   LocationPermission permission = await Geolocator.checkPermission();
 if (permission == LocationPermission.denied) {
@@ -490,6 +549,8 @@ if (permission == LocationPermission.denied) {
 }
 
 
+
+//the places api 
 Future<List<Gym>> callPlacesApi(Position position) async{
   final apiKey = GpsKey;
 final type = 'gym'; // or 'park'
@@ -555,6 +616,11 @@ print(gymlist.toSet());
 }
 
 
+
+
+
+
+//to create mock data
 Future<void> addTestWorkout() async {
   try {
     // Log to see when the function is called
@@ -578,7 +644,7 @@ Future<void> addTestWorkout() async {
 }
 
 
-
+//get the workouts
 Future<void> retrieveWorkouts() async {
   try {
     // Get the collection of workouts
@@ -664,7 +730,7 @@ Future<void> updateUserInDatabase(AppUser user) async {
 ////////////////////////////////////////////  USER DATA AS HEIGHT WEIGHT ............//////////////////////
 
 
-// saving user data
+// saving user data and its a sigelton its always static
 
 int age=0; String goal=""; String gender=""; double HEIGHT=0; double WEIGHT=0;String activity_level="";
 String uid=FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -680,10 +746,13 @@ Map<String,dynamic> getUserDat(){
   return userDat;
 }
 
-
+//get the uid
 String getUid(){
   return uid;
 }
+
+
+
 
 void setUid(String uid){
   this.uid=uid;
@@ -693,7 +762,7 @@ void setUid(String uid){
   //print("the uid is setted in the manager is $uid");
 }
 
-//set all variables
+//set all variables , THE SETTERS
 void setAge(int age){
   print("manager got age $age");
   this.age=age;
@@ -729,6 +798,11 @@ void setGender(String gender){
 void printData(){
   print("age is $age and height is $HEIGHT and weight is $WEIGHT and gender is $gender and goal is $goal");
 }
+
+
+
+
+
 
 //save the data to local storage
 void createLocalUserData() {

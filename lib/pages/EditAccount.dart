@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:app/services/appUser.dart';
 import 'package:app/services/manager.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
+
+
+
 class EditAccountPage extends StatefulWidget {
   @override
   State<EditAccountPage> createState() => _EditAccountPageState();
@@ -183,7 +185,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
                   print("the xuser that will be cached and uploaded to DB is ${Xuser.username}");
                   print("the xuser id is : ${Xuser.uid}");
                   manager.cacheUser(Xuser);
-
+                  manager.updateUserInDatabase(Xuser);
                   manager.getPrediction();
                   FocusScope.of(context).unfocus();
                   ScaffoldMessenger.of(context).showSnackBar(
