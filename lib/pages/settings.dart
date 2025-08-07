@@ -97,12 +97,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
               // Settings List
               _buildSettingsTile("Calendar", Icons.calendar_today_outlined),
-              _buildSettingsTile("Reminder", Icons.notifications_outlined),
+              //cancelled the remider page cause its full of errors
+              //_buildSettingsTile("Reminder", Icons.notifications_outlined),
               _buildSettingsTile("Update Data", Icons.update,
                   showTrailing: false),
+              /*remove the terms and conditions cause its useless for now
               _buildSettingsTile(
                   "Terms & Conditions", Icons.description_outlined,
-                  showTrailing: false),
+                  showTrailing: false),*/
+
+              SizedBox(height: 180,),
               _buildlogOut("Sign out", Icons.logout,
                   isDestructive: true, showTrailing: false),
             ],

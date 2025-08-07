@@ -70,10 +70,11 @@ Future<void> loadCompletedWorkouts() async {
     // 🧹 New day detected — save previous day's progress first
     double progress = completedExercises.length.toDouble();
 
+    final lastSaveLabel = DateFormat('EEE').format(savedDate).toLowerCase(); // e.g., "mon"
     //imediate save in the firebase
     await FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({
       dayLabel: progress,
-      'lastSaved': dayLabel
+      'lastSaved': lastSaveLabel
     }, SetOptions(merge: true));
 
     // Then reset for new day
