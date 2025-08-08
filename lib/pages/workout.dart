@@ -45,39 +45,49 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
 
 
 
-
-//load the data and safely (reset if its a new day)
-//important: if its a new day then ulpload the prev day progress and then reset all for the user to start the new day workout
+//this func loads data and also saves it if the day ends , it syncs in weeklyprogress collection also
 Future<void> loadCompletedWorkouts() async {
   final userId = FirebaseAuth.instance.currentUser?.uid;
   if (userId == null) return;
 
   final docRef = FirebaseFirestore.instance.collection('finishedWorkouts').doc(userId);
   final docSnap = await docRef.get();
+  final data = docSnap.data();
 
   final today = DateTime.now();
-  final todayStr = today.toIso8601String().split("T").first;
-  final dayLabel = DateFormat('EEE').format(today).toLowerCase(); // e.g., "mon"
+  final todayLabel = DateFormat('EEE').format(today).toLowerCase(); // e.g., "fri"
+  final todayStr = DateFormat('yyyy-MM-dd').format(today); // e.g., "2025-08-08"
 
-  final data = docSnap.data();
-  final savedDate = data?['lastSaved'];//the last saved date in the firebase
+  // Load weekly progress
+  final weeklyDoc = await FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).get();
+  String? saved = weeklyDoc.data()?['lastSaved']?.toLowerCase(); // e.g., "thu"
+  
 
-  // Load previous day's completed workouts
+  if (saved == null) {
+      await FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({
+        'lastSaved': todayLabel
+      }, SetOptions(merge: true));
+
+      print("🧙‍♂️ Initialized lastSaved to $todayLabel");
+      return; // Skip saving progress since there's no previous day
+    }
+
+  final savedLabel=saved;
+  // Load completed workouts from Firebase
   List<String> loaded = List<String>.from(data?['completed'] ?? []);
   completedExercises = loaded.toSet();
 
-  if (savedDate != todayStr) {
-    // 🧹 New day detected — save previous day's progress first
+  // 🧹 Check if it's a new day
+  if (savedLabel != todayLabel) {
+    // Save previous day's progress
     double progress = completedExercises.length.toDouble();
 
-    final lastSaveLabel = DateFormat('EEE').format(savedDate).toLowerCase(); // e.g., "mon"
-    //imediate save in the firebase
     await FirebaseFirestore.instance.collection("weeklyProgress").doc(userId).set({
-      dayLabel: progress,
-      'lastSaved': lastSaveLabel
+      savedLabel: progress, // Save under today's label
+      'lastSaved': todayLabel // Update last saved day
     }, SetOptions(merge: true));
 
-    // Then reset for new day
+    // Reset finishedWorkouts for the new day
     await docRef.set({
       'completed': [],
       'lastSaved': todayStr,
@@ -88,11 +98,11 @@ Future<void> loadCompletedWorkouts() async {
       completedExercises.clear();
     });
 
-    print("🌅 Reset Firebase for new day and saved previous progress");
+    print("🌅 New day detected: saved progress and reset workouts.");
+  } else {
+    print("📅 Same day: no reset needed.");
   }
 }
-
-
 
 
 
@@ -471,10 +481,10 @@ void _showExerciseDialog(BuildContext context, String exercise) {
           children: [
             // 📸 Display the exercise GIF
             Image.asset(  imagePath,
-  errorBuilder: (context, error, stackTrace) {
-    return Text('Image not found: $imagePath');
-  },
-),
+                errorBuilder: (context, error, stackTrace) {
+                  return Text('Image not found: $imagePath');
+                },
+              ),
 
             SizedBox(height: 10),
             Text("Details for: $exercise"),

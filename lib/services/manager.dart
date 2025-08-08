@@ -104,13 +104,13 @@ Future<void> loadTodayNutrients() async {
     todayNutrints.sugars = loaded.sugars;
     todayNutrints.calories = loaded.calories;
     todayNutrints.waterGlasses = loaded.waterGlasses;
-    print("📦 Nutrients loaded from Hive.");
-    return;
+    //print("📦 Nutrients loaded from Hive.");
+    
   }
 
   // If Hive is empty, load from Firebase
   if (uid.isEmpty) {
-    print("❌ UID is empty. Cannot fetch nutrients.");
+    //print("❌ UID is empty. Cannot fetch nutrients.");
     return;
   }
 
@@ -118,7 +118,7 @@ Future<void> loadTodayNutrients() async {
     final doc = await FirebaseFirestore.instance.collection('nutrients').doc(uid).get();
 
     if (!doc.exists) {
-      print("❌ No nutrients data found for user.");
+      //print("❌ No nutrients data found for user.");
       return;
     }
 
@@ -127,14 +127,19 @@ Future<void> loadTodayNutrients() async {
     final DateTime? firebaseDate = firebaseTimestamp?.toDate();
     final DateTime today = DateTime.now();
 
+
+    //print("the last firebase date is : $Timestamp ---- and the today is : $today");
     final bool isSameDay = firebaseDate != null &&
         firebaseDate.year == today.year &&
         firebaseDate.month == today.month &&
         firebaseDate.day == today.day;
 
+    
+    //print("so the same day is $isSameDay");
     if (!isSameDay) {
+      
       // Reset nutrients if Firebase date is old
-      print("📅 Firebase date is outdated. Resetting nutrients.");
+      //print("📅 Firebase date is outdated. Resetting nutrients.");
       todayNutrints = Nutrients();
       await FirebaseFirestore.instance.collection('nutrients').doc(uid).set({
         'calories': 0,
@@ -160,10 +165,10 @@ Future<void> loadTodayNutrients() async {
 
     // Save to Hive
     await box.put('today', todayNutrints);
-    print("✅ Nutrients saved to Hive.");
+    //print("✅ Nutrients saved to Hive.");
 
   } catch (e) {
-    print("❌ Error fetching nutrients: $e");
+    //print("❌ Error fetching nutrients: $e");
   }
 }
 

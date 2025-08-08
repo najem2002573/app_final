@@ -90,6 +90,10 @@ void initState() {
   
 }
 
+
+
+
+
 void loadNutrients() async {
   await manager.loadTodayNutrients();  // Load data from Hive
   setState(() {

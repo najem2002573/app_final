@@ -72,7 +72,7 @@ Future<void> initializeRemoteConfig() async {
 
 
                                             print("done oopenening all boxes in prep data");
-
+                                            
                                             //prevent nulls 
                                             final firebaseUser = FirebaseAuth.instance.currentUser;
                                             if (firebaseUser != null && firebaseUser.uid.isNotEmpty) {
