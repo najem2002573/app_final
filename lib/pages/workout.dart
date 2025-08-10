@@ -24,6 +24,10 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
   DateTime? _selectedDay;
   
 
+  //for the lift for strength situation
+  Map<String, dynamic> strengthList = {};
+  DocumentSnapshot? snap;
+
   //the done workouts are stored in a set
   Set<String> completedExercises = {};
 
@@ -116,11 +120,21 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
 
   switch (selectedCategory) {
     case "Cardio\n ":
-      return await getCardio();
+      {
+        this.snap=null;
+        this.strengthList.clear;
+        return await getCardio();
+        }
     case "Keep\nfit":
+    { 
+      this.snap=null;
+      this.strengthList.clear; 
       return await getKeepFit();
+    }
     case "Lift for\nStrength":
-      return await getLiftForStrength();
+     { 
+      return await getLiftForStrength("");
+     }
     default:
         return FirebaseFirestore.instance.collection("workouts")
         .doc("default").collection("plans").doc("emptyDoc").get();   // ✅ Ensures future can handle null case
@@ -155,7 +169,10 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
             SizedBox(height: 20),
             _buildDailyPlanCard(),
             SizedBox(height: 20),
-            _buildWorkoutList(context),
+            selectedCategory == "Lift for\nStrength"
+            ? _buildWorkoutListliftforstrength(context)
+            : _buildWorkoutList(context,snap),
+
             
           ],
         ),
@@ -236,6 +253,12 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
         onTap: () {
           setState(() {
             selectedCategory = title;
+            if (title != "Lift for\nStrength") {
+      snap = null; // 🧹 Clear the override snapshot
+      strengthList.clear();
+
+    }
+
             // IF A CATEGORY IS SELECTED  THEN THE CHOOSEN TITLE WILL BE THE CATERGOTY TITLE
           });
         },
@@ -374,20 +397,20 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
 ///                                   THE GETTERS FOR PRESENTATION   
 Future<DocumentSnapshot> getCardio() async{
     return FirebaseFirestore.instance.collection("workouts").doc("cardio").collection("plans")
-      .doc("peLX0fXhGs8KScLIiOhG").get(); // Plan data as a Map
+      .doc("cardio_day").get(); // Plan data as a Map
 }
 
 Future<DocumentSnapshot> getKeepFit() async{
     return FirebaseFirestore.instance.collection("workouts").doc("keep_fit").collection("plans")
-      .doc("46m5qqfM8BcpIRMu9Yl0").get(); // Plan data as a Map
+      .doc("keep_fit").get(); // Plan data as a Map
 }
 
 
 
 //HERE ARE FEW DOCS THAT CAN BE CHOOSEN FROM , WE PUT IT IN LIST AND THEN FOR EACH DAY WE CHOOSE RANDOMLY
-Future<DocumentSnapshot> getLiftForStrength() async{
+Future<DocumentSnapshot> getLiftForStrength(String type) async{
     return FirebaseFirestore.instance.collection("workouts").doc("lift_for_strength").collection("plans")
-      .doc("3UZlfubyMy2o9zGGc9Ab").get(); // Plan data as a Map
+      .doc("$type").get(); // Plan data as a Map
 }
 
 
@@ -399,8 +422,84 @@ Future<DocumentSnapshot> getLiftForStrength() async{
 //the workout function that views all workout list in listview and make it clickable 
 //to enter the workout info and click done
 
+Widget _buildWorkoutList(BuildContext context, DocumentSnapshot? overrideSnapshot) {
+Future<DocumentSnapshot> workoutFuture = 
+  snap == null 
+    ? getWorkoutForSelectedCategory() 
+    : Future.value(snap);
 
-Widget _buildWorkoutList(BuildContext context) {
+  print("the snapshot is ${snap}");
+  return FutureBuilder<DocumentSnapshot>(
+    future: workoutFuture,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      }
+
+      if (!snapshot.hasData || snapshot.data == null || !snapshot.data!.exists) {
+        return Center(child: Text("Please select a training category."));
+      }
+
+      Map<String, dynamic>? workoutData = snapshot.data!.data() as Map<String, dynamic>?;
+      if (workoutData == null || workoutData.isEmpty) {
+        return Center(child: Text("Workout data not found."));
+      }
+
+      List<dynamic> exercises = workoutData["exercises"] ?? [];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Plan Name: ${workoutData["name"]}", style: TextStyle(fontSize: 20)),
+          Text("Duration: ${workoutData["duration"]} mins"),
+          ...exercises.map<Widget>((exercise) => GestureDetector(
+                onTap: () => _showExerciseDialog(context, exercise),
+                child: Container(
+                  margin: EdgeInsets.symmetric(vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Color.fromARGB(255, 176, 176, 176), width: 1.2),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.fitness_center, color: Colors.deepPurple),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          exercise.toString(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ))
+              .toList(),
+        ],
+      );
+    },
+  );
+}
+
+
+
+//for lift for strength
+
+Widget _buildWorkoutListforliftforstrength(BuildContext context) {
   return FutureBuilder<DocumentSnapshot?>(
     future: getWorkoutForSelectedCategory(),
     builder: (context, snapshot) {
@@ -459,6 +558,7 @@ Widget _buildWorkoutList(BuildContext context) {
     },
   );
 }
+
 
 
 
@@ -535,5 +635,161 @@ String getCleanCategoryPath(String category) {
   return category.toLowerCase().replaceAll('\n', '').replaceAll(' ', '');
 }
 
+
+//map names to easen the firebase lift for strength get
+final Map<String, String> liftForStrengthDocMap = {
+  "Chest Strength Training": "chest_day",
+  "Power Leg Fire Sessions": "leg_day",
+  "Back Training": "back_day",
+  "Biceps Training": "biceps_day",
+  "Triceps Training": "triceps_day",
+  "Shoulder Training": "shoulder_day",
+  "Full Body Power Workout": "full_body_day",
+};
+
+
+  final List<Map<String, dynamic>> workoutList = [
+    {
+      "title": "Chest Strength Training",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "953 kcal",
+      "image":
+          "https://cdn.muscleandstrength.com/sites/default/files/field/feature-image/workout/10mass_feature.jpg"
+    },
+    {
+      "title": "Power Leg Fire Sessions",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "351 kcal",
+      "image":
+          "https://shop.bodybuilding.com/cdn/shop/articles/leg-workouts-for-men-get-thicker-quads-glutes-and-hams-986493.jpg?v=1737673309&width=900"
+    },
+    {
+      "title": "Back Training",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "673 kcal",
+      "image":
+          "https://cdn.shopify.com/s/files/1/0816/2082/8435/files/Back_Cover_1024x1024.jpg?v=1707160835"
+    },
+    {
+      "title": "Biceps Training",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "673 kcal",
+      "image":
+          "https://shop.bodybuilding.com/cdn/shop/articles/arm-workouts-for-men-to-build-bigger-biceps-822489.jpg?v=1731882647&width=900"
+    },
+    {
+      "title": "Triceps Training",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "673 kcal",
+      "image":
+          "https://www.kettlebellkings.com/cdn/shop/articles/9ef303d8aa70a7750d93df68c947b645_6ad0537f-1b04-42d1-8131-a630f2cd5dc6.jpg?v=1739267183&width=900"
+    },
+    {
+      "title": "Shoulder Training",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "673 kcal",
+      "image":
+          "https://i0.wp.com/www.strengthlog.com/wp-content/uploads/2023/05/shutterstock_336330470-scaled.jpg?resize=2048%2C1365&ssl=1"
+    },
+    {
+      "title": "Full Body Power Workout",
+      "duration": "1 Hour, 25 Minutes",
+      "calories": "673 kcal",
+      "image":
+          "https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2019/04/triceps-pushup-lean-muscular.jpg?w=940&h=529&crop=1&quality=86&strip=all"
+    },
+  ];
+
+
+
+
+  Widget _buildWorkoutListliftforstrength(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Workout Programs",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: workoutList.length,
+          separatorBuilder: (context, index) => SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final workout = workoutList[index];
+            return AnimatedContainer(
+              duration: Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: Colors.grey.shade100,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  )
+                ],
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.all(12),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.network(
+                    workout["image"],
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                title: Text(workout["title"],
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    "${workout["duration"]}  |  ${workout["calories"]}",
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+                onTap: () async {
+                  DocumentSnapshot snapshot = await getLiftForStrength(liftForStrengthDocMap[workout["title"]]!);
+                  this.strengthList = snapshot.data() as Map<String, dynamic>;
+                  this.snap=snapshot;
+                 _showWorkoutDialog(context);
+
+
+
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+
+
+ void _showWorkoutDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        insetPadding: EdgeInsets.all(16),
+        child: Container(
+          padding: EdgeInsets.all(16),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+          ),
+          child: SingleChildScrollView(
+            child: _buildWorkoutList(context,snap),
+          ),
+        ),
+      );
+    },
+  );
+}
 
 }

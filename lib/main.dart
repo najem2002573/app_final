@@ -1,5 +1,6 @@
 
 
+import 'package:app/FireBase%20Service/FirebaseService.dart';
 import 'package:app/debugger.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
@@ -71,6 +72,14 @@ Future<void> initializeRemoteConfig() async {
                                             //get the api keys from the firebase remote config
                                             await initializeRemoteConfig(); // init the remote the stores api keys
 
+
+                                            //seed all them data in firebase one time
+                                            /*
+                                            FirebaseService seeder=FirebaseService();
+                                            seeder.uploadWorkoutsToPlans();
+                                            */
+
+                                            
                                             //init the hive (local stroage)
                                             await Hive.initFlutter();
 
