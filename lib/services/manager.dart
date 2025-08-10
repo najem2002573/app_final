@@ -180,13 +180,12 @@ Future<void> loadTodayNutrients() async {
 
 
 // upload the nutrients in the firebase 
-  Future<void> uploadTodayNutrientsFirebase()async{
-    
-    final user = FirebaseAuth.instance.currentUser;
-    
-    if (this.uid.isEmpty) {
-    print("❌ UID is empty. Cannot upload nutrients.");
-    print("the found uid is : $uid");
+Future<void> uploadTodayNutrientsFirebase() async {
+  final user = FirebaseAuth.instance.currentUser;
+  final uid = user?.uid ?? this.uid;
+
+  if (uid == null || uid.isEmpty) {
+    print("❌ UID is null or empty. Cannot upload nutrients.");
     return;
   }
 
@@ -199,17 +198,15 @@ Future<void> loadTodayNutrients() async {
       'carbs': todayNutrints.carbs,
       'fats': todayNutrints.fats,
       'sugars': todayNutrints.sugars,
-      'water':todayNutrints.waterGlasses,
-      'date': Timestamp.now(), // optional for tracking when it was uploaded
+      'water': todayNutrints.waterGlasses,
+      'date': Timestamp.now(),
     });
 
     print("✅ Nutrients uploaded to Firebase.");
   } catch (e) {
     print("❌ Error uploading nutrients: $e");
   }
-
-
-  }
+}
 
 
 

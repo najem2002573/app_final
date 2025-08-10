@@ -3,6 +3,7 @@
 import 'package:app/debugger.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/login.dart';
+import 'package:app/pages/workout.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/nutrients.dart';
 import 'package:app/services/userDATA.dart';
@@ -11,7 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'firebase_options.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 
@@ -24,13 +25,22 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 Future<void> initializeRemoteConfig() async {
   final remoteConfig = FirebaseRemoteConfig.instance;
-  await remoteConfig.setDefaults({
-  'google_api': 'default_google_key',
-  'open_AI': 'default_openai_key',
-});
 
-  await remoteConfig.fetchAndActivate();
-  print("Remote Config initialized successfully!");
+  await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    fetchTimeout: Duration(seconds: 10),
+    minimumFetchInterval: Duration.zero, // force fresh fetch
+  ));
+
+  await remoteConfig.setDefaults({
+    'google_api': 'default_google_key',
+    'open_AI': 'default_openai_key',
+  });
+
+  final success = await remoteConfig.fetchAndActivate();
+  print("Remote Config fetch success: $success");
+
+  final openAIKey = remoteConfig.getString('open_AI');
+  print("🔑 Fetched OpenAI Key: $openAIKey");
 }
 
 
@@ -41,15 +51,23 @@ Future<void> initializeRemoteConfig() async {
 
                                           Future<bool> prepareAppData() async{
 
+                                            ////old init, old version of firebase cli 
+                                            /*
                                                 //Starting the firebase when the app launches
                                             await Firebase.initializeApp().then((_){
                                               print("its on!!!!");
                                             }).catchError((e){
                                               print("init the firebase not successfull");
                                             
-                                            }); // Initialize Firebase
+                                            }); // Initialize Firebase     */
+
+                                            //the new init for firebase
+                                            await Firebase.initializeApp(
+                                                options: DefaultFirebaseOptions.currentPlatform,
+                                              );
 
 
+                                           
                                             //get the api keys from the firebase remote config
                                             await initializeRemoteConfig(); // init the remote the stores api keys
 

@@ -8,7 +8,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 class FitnessDashboardScreen extends StatefulWidget {
   @override
   _FitnessDashboardScreenState createState() => _FitnessDashboardScreenState();
+
+
 }
+
+
+
 
 class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
   BackendManager manager=BackendManager();
