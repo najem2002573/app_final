@@ -203,6 +203,7 @@ class _RegisterState extends State<Register> {
           await userBox.clear();  // ✅ Clears all stored user data!
           Box box1=Hive.box<Nutrients>('nutrientsBox');
           box1.clear();
+          manager.deleteNutrients();
 
           Box box2=Hive.box<Userdata>('userData');
           box2.clear();

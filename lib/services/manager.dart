@@ -932,6 +932,12 @@ void updateFromUserdata(Userdata data) {
 String deleteNutrients(){
   Box box=Hive.box<Nutrients>('nutrientsBox');
   box.clear();
+   todayNutrints.protein = 0;
+    todayNutrints.carbs = 0;
+    todayNutrints.fats = 0;
+    todayNutrints.sugars = 0;
+    todayNutrints.calories = 0;
+    todayNutrints.waterGlasses = 0;
   return 'clear';
 }
 

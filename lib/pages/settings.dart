@@ -227,32 +227,34 @@ Widget _buildlogOut(String title, IconData icon,
           mainAxisSize: MainAxisSize.min,
           children: [
             ElevatedButton(
-            onPressed: () async{
-               await FirebaseAuth.instance.signOut();
-          print("user has signed out from the firebase");
-          // Optional: Clear local user data
-          final box = Hive.box<AppUser>('userBox');
-          box.delete('currentUser');
-          Box userBox = Hive.box<AppUser>('userBox');
-          await userBox.clear();  // ✅ Clears all stored user data!
-          Box box1=Hive.box<Nutrients>('nutrientsBox');
-          box1.clear();
+            onPressed: () async {
+  await FirebaseAuth.instance.signOut();
+  print("User signed out from Firebase");
 
-          Box box2=Hive.box<Userdata>('userData');
-          box2.clear();
+  // Clear all Hive boxes
+  await Hive.box<AppUser>('userBox').clear();
+  await Hive.box<Nutrients>('nutrientsBox').clear();
+  await Hive.box<Userdata>('userData').clear();
+  await Hive.box('profileimageBox').clear();
 
-Box box3=Hive.box('profileimageBox');
-          box3.clear();
-Box box4=Hive.box<AppUser>('userBox');
-          box4.clear();
-          
-          
-          print("deleting the local user data from hive local");
-          // Navigate to sign-in screen
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => SignInScreen()),
-            (route) => false,);
-            },
+  // Flush all boxes to disk
+  await Hive.box<AppUser>('userBox').flush();
+  await Hive.box<Nutrients>('nutrientsBox').flush();
+  await Hive.box<Userdata>('userData').flush();
+  await Hive.box('profileimageBox').flush();
+
+  print("All Hive boxes cleared and flushed");
+
+  // Optional: Close boxes if you're done with them
+  await Hive.close();
+
+  // Navigate to sign-in screen
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => SignInScreen()),
+    (route) => false,
+  );
+}
+,
              child: Text("confirm log out"))
           ],
         ),
