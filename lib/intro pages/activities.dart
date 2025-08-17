@@ -1,7 +1,7 @@
 import 'package:app/intro%20pages/goalscreen.dart';
-import 'package:app/pages/home.dart';
+
 import 'package:app/services/manager.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 
 class ChooseActivitiesScreen extends StatefulWidget {

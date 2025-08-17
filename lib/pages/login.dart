@@ -23,16 +23,27 @@ class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
 
-  String welcomeMessage="";
-  
-
-
+  String welcomeMessage="Welcome!";
   final manager=BackendManager();
+
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+   bool isNew=manager.isNew;
+   
+
+    print("your a ${isNew} users");
+  }
+
+
+  
   @override
   Widget build(BuildContext context) {
-    manager.isNew==true ?
-    welcomeMessage="Welcome!"
-    :welcomeMessage="Welcome back";
+    
+    
 
     return Scaffold(
       backgroundColor: Colors.white,

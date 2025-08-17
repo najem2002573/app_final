@@ -245,7 +245,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    manager.isNew=true;
+    //manager.isNew=true;
     _handleStartupLogic();
 
   }

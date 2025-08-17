@@ -34,7 +34,7 @@ class BackendManager
     this . profile_image_path=path;
   }
 
-  bool isNew=true;
+  bool isNew=false;
 
 
   //for the done workouts percentage
@@ -966,59 +966,76 @@ var workoutsData = {
 */
 
 // local user data variable , uplaoded when the app runs first time so manager parameters are loaded
-Future<void> loadUserData() async {
-  print("now loading all user data, if it's not hived then load it from Firebase via the uid");
+Future<void> loadUserData({bool forceRefresh = false}) async {
+  print("🔄 Loading user data...");
 
   final userBox = Hive.box<Userdata>('userData');
-  final data = userBox.get("userdata");
+  final localData = userBox.get("userdata");
 
-  if (data != null) {
-    // 🔹 Load from Hive
-    print("Loaded from Hive");
-    HEIGHT = data.height;
-    WEIGHT  = data.weight;
-    goal  = data.goal;
-    age  = data.age;
-    gender = data.gender;
-    this.activity_level = data.activityLevel; 
-    print("activity level: $activity_level");
-    print("the loaded user data");
-    print("Loaded from Hive: $age, $goal, $activity_level");
-  } else {
-    // 🔸 Load from Firebase
-    try {
-      if (this.uid == null || this.uid.trim().isEmpty) {
-      print("❌ UID is empty. Cannot fetch nutrients.");
+  // 🔹 Load from Hive (unless forceRefresh is true)
+  if (localData != null && !forceRefresh) {
+    print("✅ Loaded from Hive");
+    HEIGHT = localData.height;
+    WEIGHT = localData.weight;
+    goal = localData.goal;
+    age = localData.age;
+    gender = localData.gender;
+    activity_level = localData.activityLevel;
+
+    print("📦 Hive Data: $age, $goal, $activity_level");
+    //return;
+  }
+
+  // 🔸 Load from Firebase
+  try {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    print("uid in load user dat is this: $uid");
+    if (uid == null || uid.trim().isEmpty) {
+      print("❌ UID is empty. Cannot fetch user data.");
       return;
-}
-      final doc = await FirebaseFirestore.instance.collection('users').doc(this.uid).get();
-      if (doc.exists) {
-        final firebaseData = doc.data();
-        if (firebaseData != null) {
-          final dat = Userdata(
-            uid: firebaseData['uid'] ?? "",
-            age: firebaseData['age'] ?? 0,
-            goal: firebaseData['goal'] ?? "",
-            gender: firebaseData['gender'] ?? "",
-            height: firebaseData['height'] ?? 0.0,
-            weight: firebaseData['weight'] ?? 0.0,
-            activityLevel: firebaseData['activity_level'] ?? "",
-          );
-          await userBox.put('userdata', dat); // ✅ save with same key
-
-          this.HEIGHT = dat.height;
-          this.WEIGHT = dat.weight;
-          this.goal = dat.goal;
-          this.age = dat.age;
-          this.gender = dat.gender;
-          this.activity_level = dat.activityLevel;
-print("the loaded user data");
-          print("Loaded from Firebase and saved to Hive: $age, $goal, $activity_level");
-        }
-      }
-    } catch (e) {
-      print("❌ Error loading user data: $e");
     }
+
+    
+
+    final doc = await FirebaseFirestore.instance.collection('userdata').doc(uid).get();
+
+    print("the doc is this : ${doc.data()}");
+    if (!doc.exists) {
+      print("❌ Firebase doc not found for UID: $uid");
+      return;
+    }
+
+    final firebaseData = doc.data();
+    if (firebaseData == null) {
+      print("❌ Firebase data is null.");
+      return;
+    }
+
+    
+    final dat = Userdata(
+      uid: firebaseData['uid'] ?? "",
+      age: firebaseData['age'] ?? 0,
+      goal: firebaseData['goal'] ?? "",
+      gender: firebaseData['gender'] ?? "",
+      height: firebaseData['height'] ?? 0.0,
+      weight: firebaseData['weight'] ?? 0.0,
+      activityLevel: firebaseData['activity_level'] ?? "",
+    );
+
+    print("firebase fresh loaded ${dat.age}");
+
+    await userBox.put('userdata', dat); // ✅ Save to Hive
+
+    HEIGHT = dat.height;
+    WEIGHT = dat.weight;
+    goal = dat.goal;
+    age = dat.age;
+    gender = dat.gender;
+    activity_level = dat.activityLevel;
+
+    print("✅ Loaded from Firebase and saved to Hive: $age, $goal, $activity_level");
+  } catch (e) {
+    print("❌ Error loading user data: $e");
   }
 }
 

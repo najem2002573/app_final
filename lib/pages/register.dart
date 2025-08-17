@@ -212,6 +212,9 @@ Box box3=Hive.box('profileimageBox');
           box3.clear();
 Box box5=Hive.box<AppUser>('userBox');
           box5.clear();
+
+
+          manager.isNew=true;
           
                                         Navigator.of(context).push(MaterialPageRoute(builder: (context)=>SignInScreen()));
                                       } else {
