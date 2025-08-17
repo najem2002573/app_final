@@ -456,7 +456,7 @@ void setTodayNutrients(Nutrients todays){
                 tween: Tween<double>(begin: 0, end: currentMl),
                 duration: Duration(milliseconds: 1000),
                 builder: (context, value, _) => Text(
-                  "${value.toStringAsFixed(1)}",
+                  "${value.toStringAsFixed(2)}",
                   style: TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,

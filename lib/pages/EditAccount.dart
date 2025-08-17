@@ -95,7 +95,7 @@ class _EditAccountPageState extends State<EditAccountPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        leading: BackButton(color: Colors.black,onPressed: (){Navigator.pop(context);},),
+        leading: BackButton(color: Colors.black,onPressed: (){Navigator.pop(context, imagepath);},),
         backgroundColor: Colors.white,
         elevation: 0,
         title: const Text(

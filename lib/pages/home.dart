@@ -567,12 +567,14 @@ Future<void> fetchWeeklyStats() async {
         ),
         child: BarChart(
           BarChartData(
+            maxY: 7,
             barGroups: List.generate(7, (i) =>
                 _buildBar(weeklyStats[i], i == DateTime.now().weekday % 7, i)),
             borderData: FlBorderData(show: false),
             gridData: FlGridData(show: false),
             titlesData: FlTitlesData(
               leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+               topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -617,7 +619,7 @@ BarChartGroupData _buildBar(double value, bool highlight, int index) {
         borderRadius: BorderRadius.circular(6),
         backDrawRodData: BackgroundBarChartRodData(
           show: true,
-          toY: 10,
+          toY: 7,
           color: Colors.grey.shade200,
         ),
       )

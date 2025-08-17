@@ -22,9 +22,18 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isObscure = true;
+
+  String welcomeMessage="";
+  
+
+
   final manager=BackendManager();
   @override
   Widget build(BuildContext context) {
+    manager.isNew==true ?
+    welcomeMessage="Welcome!"
+    :welcomeMessage="Welcome back";
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -49,7 +58,7 @@ class _SignInScreenState extends State<SignInScreen> {
         
                   // Welcome Text
                   Text(
-                    "Welcome !",
+                    "$welcomeMessage",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

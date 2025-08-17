@@ -35,8 +35,7 @@ class _FitnessDashboardScreenState extends State<FitnessDashboardScreen> {
 void initState() {
   super.initState();
   this.selectedCategory="";
-  loadCompletedWorkouts();
-  
+  initPage();
   
 /*
 if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
@@ -49,6 +48,18 @@ if (manager.goal == "Gain muscle mass" || manager.goal == "Get stronger") {
 */
   print("🔁 Initial category based on goal: $selectedCategory");
 
+}
+
+
+
+
+void initPage()async{
+
+  await loadCompletedWorkouts();
+
+  setState(() {
+    print("loaded");
+  });
 }
 
 
@@ -139,6 +150,8 @@ Future<DocumentSnapshot> getWorkoutForSelectedCategory() async {
         return FirebaseFirestore.instance.collection("workouts")
         .doc("default").collection("plans").doc("emptyDoc").get();   // ✅ Ensures future can handle null case
   }
+
+  
 }
 
 
@@ -586,8 +599,9 @@ void _showExerciseDialog(BuildContext context, String exercise) {
           children: [
             // 📸 Display the exercise GIF
             Image.asset(  imagePath,
+            //if path not found view the blank gif instead
                 errorBuilder: (context, error, stackTrace) {
-                  return Text('Image not found: $imagePath');
+                  return Image.asset("assets/gifs/cardio/blankGif.gif");
                 },
               ),
 

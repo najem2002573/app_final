@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:app/pages/EditAccount.dart';
-import 'package:app/pages/Reminderpage.dart';
+
 import 'package:app/pages/calender.dart';
 import 'package:app/pages/food.dart';
 import 'package:app/pages/login.dart';
@@ -11,7 +11,7 @@ import 'package:app/services/nutrients.dart';
 import 'package:app/services/userDATA.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'package:hive/hive.dart';
 
 
@@ -45,6 +45,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
     this.xuser=user.get('currentUser');
     this.uname=xuser.username;
+
+
+    
   }
      
 
@@ -68,14 +71,24 @@ class _SettingsPageState extends State<SettingsPage> {
   : AssetImage("lib/images/user.png") ,
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditAccountPage(),
-                        ),
-                      );
-                    },
+                    onTap: () async {
+                          final updatedImagePath = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditAccountPage(),
+                            ),
+                          );
+
+                          if (updatedImagePath != null) {
+                            setState(() {
+                              userImagePath = updatedImagePath; // or however you're storing it
+                            });
+                          }
+                        },
+
+
+
+                    
                     child: CircleAvatar(
                       backgroundColor: Colors.deepPurple.shade100,
                       radius: 18,
