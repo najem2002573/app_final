@@ -1,7 +1,6 @@
 import 'package:app/intro%20pages/genderpage.dart';
 import 'package:app/pages/home.dart';
 import 'package:app/pages/register.dart';
-import 'package:app/pages/reset_pass.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/authUser.dart';
 import 'package:app/services/manager.dart';
@@ -50,7 +49,7 @@ class _SignInScreenState extends State<SignInScreen> {
         
                   // Welcome Text
                   Text(
-                    "Welcome Back!",
+                    "Welcome !",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -76,6 +75,8 @@ class _SignInScreenState extends State<SignInScreen> {
                   SizedBox(height: 10),
         
                   // Forgot Password Button
+                  /*
+
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -88,7 +89,8 @@ class _SignInScreenState extends State<SignInScreen> {
                         style: TextStyle(color: Colors.teal, fontSize: 14),
                       ),
                     ),
-                  ),
+                  )*/
+                  
                   SizedBox(height: 20),
         
                   // Login Button
@@ -96,14 +98,16 @@ class _SignInScreenState extends State<SignInScreen> {
                   SizedBox(height: 20),
         
                   // "Sign in with" Text
+                  /*
                   Text(
                     "Sign in with",
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
+                  ),*/
                   SizedBox(height: 15),
         
                   // Social Login Buttons
-                  _buildSocialIcons(),
+                  
+                 // _buildSocialIcons(),
                   SizedBox(height: 20),
         
                   // Sign Up Prompt

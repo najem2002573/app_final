@@ -602,7 +602,9 @@ void _showExerciseDialog(BuildContext context, String exercise) {
               FloatingActionButton(
                 onPressed: () {
                   // handle "done" logic here, if clicked then increment this worjout and pop
-                  completedExercises.add(exercise);
+                  if(completedExercises.length<=6)
+                    {completedExercises.add(exercise);}
+                    print("the length of workout now is : ${completedExercises.length}");
                   manager.trackWorkout(exercise); //in manager we sync progress with firebase
                   Navigator.of(context).pop();
                   setState(() {}); // refresh UI

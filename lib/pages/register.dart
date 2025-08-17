@@ -1,11 +1,11 @@
-import 'package:app/pages/home.dart';
+
 import 'package:app/pages/login.dart';
 import 'package:app/services/appUser.dart';
 import 'package:app/services/authUser.dart';
 import 'package:app/services/manager.dart';
 import 'package:app/services/nutrients.dart';
 import 'package:app/services/userDATA.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
@@ -31,6 +31,12 @@ class _RegisterState extends State<Register> {
     final manager=BackendManager();
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        leading: BackButton(
+          onPressed: Navigator.of(context).pop,
+        ),
+      ),
       body: SingleChildScrollView(
         child: SafeArea(
           child: Padding(
@@ -44,7 +50,7 @@ class _RegisterState extends State<Register> {
                   // App Logo or Illustration
                   Center(
                     child: Image.asset(
-                      'lib/images/wellness.jpg', // Add your logo in the assets folder
+                      'lib/images/logo.jpeg', // Add your logo in the assets folder
                       height: 100,
                     ),
                   ),
