@@ -293,7 +293,7 @@ double successProba=0;
 //get the prediction for the user if he will achieve his desired goal by his data (weight heigh and bmi...)
 // its a backend api for prediction of the proba of success we used random forest 
 Future<dynamic> getPrediction() async {
-  final String apiUrl = "http://192.168.68.113:8000/predict_goal";
+  final String apiUrl = "http://10.101.111.148:8000/predict_goal";
   
   // Calculate BMI & gender formatting
   double bmi = WEIGHT / ((HEIGHT / 100) * (HEIGHT / 100));
@@ -395,7 +395,7 @@ Future<String> pickAndUploadImage() async {
 
 //using custome image model to identify food, call api and give it the image and get its class (french fries)
 Future<Map<String, dynamic>?> sendImageToAPI(Uint8List imageBytes) async {
-  final uri = Uri.parse('http://192.168.68.113:8000/predict_food/');
+  final uri = Uri.parse('http://10.101.111.148:8000/predict_food/');
   final request = http.MultipartRequest('POST', uri);
 
   // Add the image as a file

@@ -51,6 +51,7 @@ class _GymspageState extends State<Gymspage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Nearby Gyms'),
+      automaticallyImplyLeading: false,
       actions: [
           // Map and List toggle buttons inside the AppBar
           IconButton(
