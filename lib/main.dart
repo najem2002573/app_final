@@ -20,7 +20,7 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 
 //the app <??<>??>
-//8.3.25 fkn updates
+//18.18 , all good!
 
 
 
